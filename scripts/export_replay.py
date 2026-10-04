@@ -91,7 +91,10 @@ def main():
         disp = sim.Dispersion(**kw)
         entry = {"id": fid, "title": title, "story": story,
                  "wind": list(disp.wind_mean), "engine_out_time": disp.engine_out_time, "runs": {}}
-        for key, ctl in (("mpc", C.ConvexMPC()), ("baseline", C.Baseline())):
+        ctls = [("mpc", C.ConvexMPC()), ("baseline", C.Baseline())]
+        if disp.engine_out_time is not None:
+            ctls.append(("mpc_eo", C.ConvexMPC(eo_reserve=True)))
+        for key, ctl in ctls:
             run = export_flight(key, ctl, disp)
             entry["runs"][key] = run
             print(f"{fid:10s} {key:8s} {run['outcome']:10s} {run['reason']}")

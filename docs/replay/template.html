@@ -8,7 +8,7 @@
    bias; blue = convex MPC, amber = baseline, used identically in scene, cards and chart. */
 :root {
   --bg: #f3f4f6; --panel: #ffffff; --ink: #14171c; --muted: #5b6472; --line: #d9dde3;
-  --mpc: #2563eb; --base: #d26a06; --ok: #15803d; --warn: #6b7280; --bad: #c81e1e;
+  --mpc: #2563eb; --base: #d26a06; --eo: #0f8a76; --ok: #15803d; --warn: #6b7280; --bad: #c81e1e;
   --chip: #e8ebf0; --focus: #2563eb;
   --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --body: "Archivo", "Helvetica Neue", Arial, sans-serif;
@@ -16,11 +16,11 @@
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #0e1116; --panel: #161a21; --ink: #e8ebf0; --muted: #9aa3b2; --line: #2a303a;
-  --mpc: #6b9bff; --base: #f59a3a; --ok: #4ade80; --warn: #9ca3af; --bad: #f87171;
+  --mpc: #6b9bff; --base: #f59a3a; --eo: #34c3a8; --ok: #4ade80; --warn: #9ca3af; --bad: #f87171;
   --chip: #212733; --focus: #6b9bff; color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #0e1116; --panel: #161a21; --ink: #e8ebf0; --muted: #9aa3b2; --line: #2a303a;
-  --mpc: #6b9bff; --base: #f59a3a; --ok: #4ade80; --warn: #9ca3af; --bad: #f87171;
+  --mpc: #6b9bff; --base: #f59a3a; --eo: #34c3a8; --ok: #4ade80; --warn: #9ca3af; --bad: #f87171;
   --chip: #212733; --focus: #6b9bff; color-scheme: dark }
 * { box-sizing: border-box }
 body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5;
@@ -101,6 +101,7 @@ footer p { margin: 0 0 6px }
     <div class="legend">
       <span><span class="sw" style="background:var(--mpc)"></span><b>Convex MPC</b> plans a fuel-optimal path every second</span>
       <span><span class="sw" style="background:var(--base)"></span><b>Baseline</b> follows a fixed braking profile</span>
+      <span><span class="sw" style="background:var(--eo)"></span><b>MPC + engine-out reserve</b> (engine-failure flights) always keeps enough braking to lose an engine</span>
     </div>
   </header>
 
@@ -117,6 +118,7 @@ footer p { margin: 0 0 6px }
     </div>
     <div class="tag" id="tag-mpc" style="background:var(--mpc)">MPC</div>
     <div class="tag" id="tag-baseline" style="background:var(--base)">Baseline</div>
+    <div class="tag" id="tag-mpc_eo" style="background:var(--eo)" hidden>MPC + reserve</div>
   </div>
 
   <div class="controls">
@@ -130,10 +132,7 @@ footer p { margin: 0 0 6px }
     </div>
   </div>
 
-  <div class="cards">
-    <section class="card" id="card-mpc"></section>
-    <section class="card" id="card-baseline"></section>
-  </div>
+  <div class="cards" id="cards"></div>
 
   <div class="chartbox">
     <h3>Descent rate vs altitude above the arms (log scales). Dashed line: the terminal gate, 12 m above the arms.</h3>
@@ -158,10 +157,12 @@ footer p { margin: 0 0 6px }
 <script>
 (function () {
   const DATA = JSON.parse(document.getElementById("flights").textContent);
-  const KEYS = ["mpc", "baseline"];
-  const NAMES = { mpc: "Convex MPC", baseline: "Baseline" };
+  const ALL = ["mpc", "baseline", "mpc_eo"];
+  let KEYS = ["mpc", "baseline"];
+  const NAMES = { mpc: "Convex MPC", baseline: "Baseline", mpc_eo: "MPC + engine-out reserve" };
+  const VAR = { mpc: "--mpc", baseline: "--base", mpc_eo: "--eo" };
   const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-  const COLORS = { mpc: 0x3b7bff, baseline: 0xf08a24 };
+  const COLORS = { mpc: 0x3b7bff, baseline: 0xf08a24, mpc_eo: 0x1fb59a };
   const CP = DATA.meta.tower.catch_point;
   const L = DATA.meta.vehicle.length, D = DATA.meta.vehicle.diameter;
   let flight = 0, t = 0, playing = false, speed = 1, cam = "tower", tEnd = 1;
@@ -255,10 +256,10 @@ footer p { margin: 0 0 6px }
     scene.add(g);
     return { g, plumeHolder, plume, core };
   }
-  const boosters = { mpc: makeBooster(COLORS.mpc), baseline: makeBooster(COLORS.baseline) };
+  const boosters = { mpc: makeBooster(COLORS.mpc), baseline: makeBooster(COLORS.baseline), mpc_eo: makeBooster(COLORS.mpc_eo) };
   const trails = {}, planLine = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineDashedMaterial({ color: 0x9cc0ff, dashSize: 8, gapSize: 6, transparent: true, opacity: 0.8 }));
   scene.add(planLine);
-  for (const k of KEYS) {
+  for (const k of ALL) {
     trails[k] = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: COLORS[k] }));
     scene.add(trails[k]);
   }
@@ -287,21 +288,27 @@ footer p { margin: 0 0 6px }
     tabs.appendChild(b);
   });
   const card = {}, fields = ["alt", "vz", "vh", "thrust", "prop", "dist"];
-  for (const k of KEYS) {
-    const el = document.getElementById("card-" + k);
-    el.innerHTML = `<h2><span class="sw" style="background:var(${k === "mpc" ? "--mpc" : "--base"})"></span>${NAMES[k]}<span class="mode" id="mode-${k}">approach</span></h2>
-      <div class="grid">
-        <div><div class="k">Altitude</div><div class="v" id="${k}-alt"></div></div>
-        <div><div class="k">Descent rate</div><div class="v" id="${k}-vz"></div></div>
-        <div><div class="k">Sideways</div><div class="v" id="${k}-vh"></div></div>
-        <div><div class="k">Thrust</div><div class="v" id="${k}-thrust"></div></div>
-        <div><div class="k">Propellant</div><div class="v" id="${k}-prop"></div></div>
-        <div><div class="k">To catch point</div><div class="v" id="${k}-dist"></div></div>
-      </div>
-      <div class="result" id="${k}-result">In flight.</div>`;
-    card[k] = Object.fromEntries(fields.map((f) => [f, document.getElementById(`${k}-${f}`)]));
-    card[k].mode = document.getElementById("mode-" + k);
-    card[k].result = document.getElementById(k + "-result");
+  function buildCards() {
+    const box = document.getElementById("cards");
+    box.innerHTML = "";
+    for (const k of KEYS) {
+      const el = document.createElement("section");
+      el.className = "card";
+      el.innerHTML = `<h2><span class="sw" style="background:var(${VAR[k]})"></span>${NAMES[k]}<span class="mode" id="mode-${k}">approach</span></h2>
+        <div class="grid">
+          <div><div class="k">Altitude</div><div class="v" id="${k}-alt"></div></div>
+          <div><div class="k">Descent rate</div><div class="v" id="${k}-vz"></div></div>
+          <div><div class="k">Sideways</div><div class="v" id="${k}-vh"></div></div>
+          <div><div class="k">Thrust</div><div class="v" id="${k}-thrust"></div></div>
+          <div><div class="k">Propellant</div><div class="v" id="${k}-prop"></div></div>
+          <div><div class="k">To catch point</div><div class="v" id="${k}-dist"></div></div>
+        </div>
+        <div class="result" id="${k}-result">In flight.</div>`;
+      box.appendChild(el);
+      card[k] = Object.fromEntries(fields.map((f) => [f, document.getElementById(`${k}-${f}`)]));
+      card[k].mode = document.getElementById("mode-" + k);
+      card[k].result = document.getElementById(k + "-result");
+    }
   }
   const MODE_LABEL = { approach: "guidance", terminal: "terminal descent", divert: "divert" };
 
@@ -320,6 +327,13 @@ footer p { margin: 0 0 6px }
     [...tabs.children].forEach((b, j) => b.setAttribute("aria-selected", j === i ? "true" : "false"));
     const fl = DATA.flights[i];
     document.getElementById("story").textContent = fl.story;
+    KEYS = ALL.filter((k) => fl.runs[k]);
+    buildCards();
+    for (const k of ALL) {
+      const on = KEYS.includes(k);
+      boosters[k].g.visible = on; trails[k].visible = on;
+      document.getElementById("tag-" + k).hidden = !on;
+    }
     tEnd = Math.max(...KEYS.map((k) => fl.runs[k].t[fl.runs[k].t.length - 1]));
     for (const k of KEYS) {
       const run = fl.runs[k];
@@ -399,7 +413,7 @@ footer p { margin: 0 0 6px }
       controls.target.lerp(p, force ? 1 : 0.15);
     }
     const w = fl.wind, ws = Math.hypot(w[0], w[1]);
-    ov.push(`T+${t.toFixed(1)} s   ${t < DATA.meta.switch_time ? "13 engines" : "3 engines"}`);
+    ov.push(`T+${t.toFixed(1)} s   ${mpcNow.n} engines firing`);
     ov.push(ws > 0.1 ? `wind ${ws.toFixed(0)} m/s from ${compass(w)}` : "calm air");
     if (fl.engine_out_time != null) ov.push(t >= fl.engine_out_time ? "ENGINE OUT" : `engine fails at T+${fl.engine_out_time.toFixed(0)} s`);
     document.getElementById("overlay").innerHTML = ov.map((x) => `<span>${x}</span>`).join("");
@@ -435,7 +449,7 @@ footer p { margin: 0 0 6px }
     const fl = DATA.flights[flight];
     for (const k of KEYS) {
       const run = fl.runs[k];
-      cx.strokeStyle = css(k === "mpc" ? "--mpc" : "--base"); cx.lineWidth = 1.6 * g.dpr; cx.beginPath();
+      cx.strokeStyle = css(VAR[k]); cx.lineWidth = 1.6 * g.dpr; cx.beginPath();
       run.r.forEach((p, i) => { const h = p[2] - CP[2], v = -run.v[i][2]; if (h <= 0 && i > 0) return; const x = xs(h, g), y = ys(v, g); if (i === 0) cx.moveTo(x, y); else cx.lineTo(x, y); });
       cx.stroke();
     }
@@ -448,7 +462,7 @@ footer p { margin: 0 0 6px }
     for (const k of KEYS) {
       const s = sample(fl.runs[k], t), h = s.r[2] - CP[2];
       if (h <= 0) continue;
-      cx.fillStyle = css(k === "mpc" ? "--mpc" : "--base");
+      cx.fillStyle = css(VAR[k]);
       cx.beginPath(); cx.arc(xs(h, base), ys(-s.v[2], base), 4 * base.dpr, 0, Math.PI * 2); cx.fill();
     }
   }

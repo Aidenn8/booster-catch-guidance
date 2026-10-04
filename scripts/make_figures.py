@@ -52,16 +52,22 @@ def label(key):
     rest = key[len(family(key)):].strip("[]")
     if not rest:
         return name
+    if rest == "approach_cap=1":
+        return f"{name} + approach cap"
+    if rest == "eo_reserve=1":
+        return f"{name} + engine-out reserve"
     rest = rest.replace("approach_cap=0", "no approach cap").replace("margin=", "margin ").replace(",", ", ")
     return f"{name} ({rest})"
 
 
 def ctl_keys(rows):
-    """Controllers in a results file, MPC variants first, plain names before variants."""
+    """Controllers in a results file: MPC, its variants, then the baseline."""
     return sorted({d["controller"] for d in rows}, key=lambda k: (family(k) != "mpc", "[" in k, k))
 
 
 def color(key):
+    if "eo_reserve=1" in key:
+        return "#0f8a76"
     c = COL[family(key)]
     return c if "[" not in key else {"mpc": "#93b4f5", "baseline": "#f5b77a"}[family(key)]
 
@@ -267,7 +273,7 @@ def fig_wind():
         ax.fill_between(speeds, lo, hi, color=color(key), alpha=0.12)
         out[key] = dict(speeds=speeds, rate=rate, strikes=strike)
     ax.set(xlabel="mean wind speed (m/s), with gusts", ylabel="catch rate (%)", ylim=(-3, 103),
-           title="Crosswind: where the catch stops working")
+           title="Crosswind: where the catch stops working (12 flights per speed, shaded = 95% interval)")
     ax.legend()
     fig.tight_layout()
     fig.savefig(OUT / "wind.png")
@@ -280,7 +286,7 @@ def fig_engineout():
     rows = load("mc_engineout.jsonl")
     if not rows:
         return None
-    keys = ctl_keys(rows)
+    keys = ctl_keys(rows)[::-1]   # first controller drawn on top
     fig, ax = plt.subplots(figsize=(8.5, 1.0 + 0.55 * len(keys)))
     for i, key in enumerate(keys):
         for d in rows:

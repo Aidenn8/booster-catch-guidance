@@ -70,6 +70,13 @@ def drag_accel(v, m, wind, veh):
     return np.concatenate([side, axial], axis=-1) / m
 
 
+def terminal_reserve(veh, tower, factor=1.05):
+    """Propellant (kg) the terminal descent needs: thrust ~ m (g + decel) for its duration,
+    at a near-empty mass (dry + ~4 t), plus 5 %."""
+    m = veh.dry_mass + 4e3
+    return factor * m * (G0 + tower.terminal_decel) * tower.terminal_duration * veh.alpha
+
+
 def time_grid(tf, N, breaks):
     """N intervals over [0, tf], with nodes exactly at each break inside (0, tf)."""
     bs = sorted({float(b) for b in breaks if b is not None and 1e-3 < b < tf - 1e-3})
@@ -178,6 +185,10 @@ def solve_fixed(veh, tower, r0, v0, m0, tf, n_nodes=40, switch_time=None, engine
         cons += [u[k][2] >= (cos_fin if in_final else cos_max) * s[k]]
     # mass cannot drop below dry mass
     cons += [z >= np.log(veh.dry_mass)]
+    # ...and the plan ends at the gate, so it must arrive there with the terminal descent's
+    # propellant still on board; otherwise a plan "succeeds" and the booster runs dry over
+    # the arms. If this cannot be met the planner says so early, and the booster diverts.
+    cons += [z[N] >= np.log(veh.dry_mass + terminal_reserve(veh, tower))]
     if use_offshore:
         for k in range(N + 1):
             if (total_tf - (t[k] + elapsed)) > tower.commit_time + 1e-6:

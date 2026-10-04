@@ -26,7 +26,7 @@ with sync_playwright() as p:
         # jump to the late-ignition flight and scrub to the catch
         tabs = pg.locator(".tab")
         print(tag, "tabs:", tabs.count())
-        tabs.nth(2).click()
+        tabs.nth(5).click()
         pg.locator("#scrub").evaluate("(el) => { el.value = 700; el.dispatchEvent(new Event('input')); }")
         pg.wait_for_timeout(800)
         pg.screenshot(path=str(out / f"{tag}_late_end.png"), full_page=True)

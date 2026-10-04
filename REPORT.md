@@ -41,9 +41,14 @@ with no authority to correct downwards. Both controllers therefore hand over at 
 state to the gate, then tracks it with a PD correction. The plan respects: thrust in
 [40 %, 100 % - margin] of the live engines (13, then 3), thrust tilt ≤ 15° - tilt margin
 (≤ 3° in the 2 s before the gate), an offshore half-space until the commit window (6 s
-before the gate) and an approach-speed cap inside it, a 20° glide-slope cone over the
-catch point, drag (two-pass profile), the estimated disturbance, and the expected thrust
-tail-off at the engine switch. If no plan exists with the margins it relaxes them in tiers,
+before the gate), a 20° glide-slope cone over the catch point, drag (successive passes,
+the first on the previous plan's velocities), the estimated disturbance, and the expected
+thrust tail-off at the engine switch. Two optional convex constraints are evaluated as
+variants: an **approach cap** (close on the tower at ≤ 10 m/s inside the commit window)
+and an **engine-out braking reserve** (in the 3-engine phase, v_z² ≤ v_gate² +
+2 a_eo (z - z_gate), where a_eo is the net deceleration with one engine fewer: losing an
+engine never leaves the booster unable to stop at the gate). Tuned settings (on a separate
+tuning set, §5.1): margin 8 %, tilt margin 2°, neither option. If no plan exists with the margins it relaxes them in tiers,
 then allows a faster gate arrival (up to 12 m/s, which the terminal descent can absorb);
 if still nothing exists and the gate is more than 3 s away, the infeasibility is taken as
 a certificate that the catch is lost and it aborts. An engine failure triggers an
@@ -87,11 +92,11 @@ infeasible and must slip it, at a cost of ~0.5 t of propellant per half second.
 
 | check | result |
 |---|---|
-| lossless gap on the nominal plan (max σ - ‖u‖, relative) | 2 x 10⁻⁷ |
+| lossless gap on the nominal plan (max σ - ‖u‖, relative) | 1.4 x 10⁻⁷ |
 | planned thrust inside the real 40-100 % range | every interval |
 | vertical descent vs independent bang-bang shooting solution | fuel 16,524.6 vs 16,520.2 kg (0.03 %), flight time 10.261 vs 10.256 s |
-| SLSQP on the original non-convex problem, free final time, 3 different starting guesses | all converge to 11.233 s, 18,170.2 kg; convex: 11.221 s, 18,178.5 kg (+0.05 %, the conservative Taylor bounds) |
-| plan replayed open loop in the simulator (14 s from 270 m/s) | 3.7 m, 0.17 m/s, 36 kg off |
+| SLSQP on the original non-convex problem, free final time, 3 different starting guesses | all converge to 11.233 s, 18,170.2 kg; convex: 11.221 s, 18,173.3 kg (+0.02 %, the conservative Taylor bounds) |
+| plan replayed open loop in the simulator (14 s from 270 m/s) | 4.7 m, 0.40 m/s, 40 kg off |
 | simulator integrator vs exact rocket-equation solution | < 1 mm, < 1 mm/s |
 
 A note on the SLSQP check: at a *fixed* flight time, SLSQP from a smooth start converges
