@@ -120,6 +120,18 @@ These came out of debugging, and each one is a real property of the problem:
 4. **Know which number you are fooling.** Treating "engines 4% weak" as "booster 4%
    heavier" gives the right accelerations but makes the planner miscount the remaining
    fuel by 10 tonnes, so it falsely declared catches impossible.
+5. **A planner must agree with itself.** The test that found the biggest bug was simple:
+   take a plan, jump to a point along it, and ask the planner to plan again from there
+   with the same rules. It said "impossible". Air drag was added in a second pass, and
+   the first pass ignored it; drag supplies a lot of braking early on, so the drag-free
+   first pass failed and the planner gave up before ever adding drag. Starting the first
+   pass with a drag estimate fixed it, and the optimizer stopped wasting fuel on
+   needless re-timing.
+6. **Rules checked only at a few instants can be broken in between.** The planner checks
+   "stay offshore until the commit window" at its 32 time points. Between two points the
+   plan could drift slightly past the line, and the next plan (with different time points)
+   then found the same timing impossible. Putting a time point exactly on every boundary
+   where a rule changes fixed it.
 
 ## Results
 

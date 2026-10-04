@@ -174,7 +174,10 @@ class _Base:
         # always aim further offshore than the booster is now: a fixed aim point would pull
         # a booster that is already beyond it back towards the tower
         aim = np.array([min(target[0] + self.DIVERT_X, r[0] - 30.0), r[1]])
-        a_h = 0.4 * (aim - r[:2]) - 1.0 * v[:2]
+        # stiff gains: the sideways request must saturate the tilt limit while the booster is
+        # still drifting towards the tower. With soft gains the (huge) braking request
+        # dominates, and once the total is clipped to maximum thrust the tilt stays near 20 deg.
+        a_h = 1.0 * (aim - r[:2]) - 2.5 * v[:2]
         az = G0 + 1.5 * (-self.DIVERT_DESCENT - v[2]) - self.accel_ff(v)[2]
         return self.m_eff * limit_tilt(np.array([a_h[0], a_h[1], max(az, 1.0)]), self.veh.divert_tilt_deg)
 
@@ -217,10 +220,10 @@ class ConvexMPC(_Base):
     residual_cap = 1.0           # m/s^2 per axis: cap on the disturbance estimate fed to the planner
 
     def __init__(self, replan_every=1.0, first_replan=0.5, freeze_last=2.5, margin=0.08, extra_time=0.0,
-                 kp=0.6, kd=1.6, n_nodes=32, approach_cap=True, tilt_margin=2.0):
+                 kp=0.6, kd=1.6, n_nodes=32, approach_cap=False, tilt_margin=2.0, eo_reserve=False):
         self.replan_every, self.first_replan, self.freeze_last = replan_every, first_replan, freeze_last
         self.margin, self.extra_time, self.kp, self.kd, self.n_nodes = margin, extra_time, kp, kd, n_nodes
-        self.approach_cap, self.tilt_margin = approach_cap, tilt_margin
+        self.approach_cap, self.tilt_margin, self.eo_reserve = approach_cap, tilt_margin, eo_reserve
 
     def reset(self, veh, tower, scen):
         super().reset(veh, tower, scen)
@@ -273,7 +276,8 @@ class ConvexMPC(_Base):
             v_guess=v_guess,
             switch_time=self.scen.switch_time, engines=e, elapsed=t, total_tf=t + tf, margin=margin,
             extra_accel=self._residual(), gate_speed_max=gate_speed_max, approach_cap=self.approach_cap,
-            tilt_margin_deg=self._tilt_margin(margin), switch_lag=TAU_LAG)
+            tilt_margin_deg=self._tilt_margin(margin), switch_lag=TAU_LAG,
+            eo_reserve=self.eo_reserve and not self.engine_out)
 
     def _replan(self, t, r, v):
         self.n_solves += 1
@@ -281,7 +285,8 @@ class ConvexMPC(_Base):
             p = guidance.solve_earliest(
                 self.planning_vehicle(), self.tower, r, v, self.m_est, extra=self.extra_time, n_nodes=self.n_nodes,
                 switch_time=self.scen.switch_time, engines=self.engines_for_planning(t), margin=self.margin,
-                approach_cap=self.approach_cap, tilt_margin_deg=self.tilt_margin, switch_lag=TAU_LAG)
+                approach_cap=self.approach_cap, tilt_margin_deg=self.tilt_margin, switch_lag=TAU_LAG,
+                eo_reserve=self.eo_reserve and not self.engine_out)
             if p is not None:
                 self.plan, self.plan_t0, self.t_gate = p, t, t + p.tf
             else:

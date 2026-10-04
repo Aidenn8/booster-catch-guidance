@@ -90,7 +90,7 @@ def solve_fixed(veh, tower, r0, v0, m0, tf, n_nodes=40, switch_time=None, engine
                 wind=(0.0, 0.0, 0.0), drag_profile=None, elapsed=0.0, total_tf=None,
                 use_offshore=True, use_glideslope=True, margin=0.0, extra_accel=None, gate_speed_max=None,
                 final_align=True, check_floor=True, approach_cap=True, tilt_margin_deg=0.0, switch_lag=0.0,
-                v_guess=None,
+                v_guess=None, eo_reserve=False,
                 solver="CLARABEL"):
     """Minimum-fuel trajectory reaching the terminal gate at time tf (from now): centred
     above the catch point, `gate_height` up, moving straight down at the gate speed.
@@ -186,6 +186,17 @@ def solve_fixed(veh, tower, r0, v0, m0, tf, n_nodes=40, switch_time=None, engine
                 # inside the commit window, close on the tower no faster than this, so a
                 # booster that has to abort late still has room to divert away from it
                 cons += [v[k][0] <= tower.approach_speed_max]
+    if eo_reserve:
+        # Engine-out braking reserve (convex: a square below an affine function). During the
+        # 3-engine phase the booster must always be slow enough that the engines left after
+        # losing one (at the heaviest possible mass, i.e. now) could still bring it down to
+        # the gate speed at the gate: v_z^2 <= v_gate^2 + 2 a_eo (z - z_gate).
+        n_left = engines[1] - 1
+        a_eo = n_left * veh.engine_thrust * veh.throttle_max / m0 - G0
+        zg = tower.gate_point[2]
+        for k in range(1, N + 1):
+            if t[k] + elapsed >= (switch_time if switch_time is not None else 0.0) - 1e-9 and a_eo > 0:
+                cons += [cp.square(v[k][2]) <= tower.gate_speed ** 2 + 2 * a_eo * (r[k][2] - zg)]
     if use_glideslope:
         # stay above a cone rising at GLIDE_SLOPE_DEG from the catch point: no low,
         # flat approach skimming the ground or the launch mount

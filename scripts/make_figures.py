@@ -130,7 +130,7 @@ def fig_trajectories():
 
 # ---------------------------------------------------------------- 2. trade-off frontier
 def fig_tradeoff():
-    rows = load("mc_tune_v3.jsonl")
+    rows = load("mc_tune_v4.jsonl")
     if not rows:
         return None
     by = {}
@@ -145,17 +145,34 @@ def fig_tradeoff():
         strikes = sum(outcome(d) == "pad strike" for d in rs)
         pts.append(dict(key=key, fam=family(key), n=n, rate=k / n, lo=lo, hi=hi, strikes=strikes,
                         prop=float(np.median(prop)) if prop else np.nan))
-    fig, ax = plt.subplots(figsize=(7.2, 4.6))
+    fig, ax = plt.subplots(figsize=(7.6, 4.8))
+    capped = [p for p in pts if p["fam"] == "mpc" and "approach_cap=0" not in p["key"]]
     for p in pts:
+        hollow = p in capped
         ax.errorbar(p["prop"], 100 * p["rate"], yerr=[[100 * (p["rate"] - p["lo"])], [100 * (p["hi"] - p["rate"])]],
-                    fmt="o", color=COL[p["fam"]], ms=6, capsize=2, lw=0.8)
-        label = p["key"].replace("baseline", "B").replace("mpc", "MPC").replace("approach_cap=0", "no cap")
-        label = label.replace("margin=", "m=").replace("a2=", "a2=")
-        ax.annotate(label + (f"  ({p['strikes']} strike)" if p["strikes"] else ""), (p["prop"], 100 * p["rate"]),
-                    textcoords="offset points", xytext=(5, 4), fontsize=7.5, color=COL[p["fam"]])
+                    fmt="o", color=COL[p["fam"]], ms=7, capsize=2, lw=0.8,
+                    mfc="white" if hollow else COL[p["fam"]], mew=1.5)
+        if hollow:
+            continue
+        if p["fam"] == "mpc":
+            text = f"MPC, margin {float(p['key'].split('margin=')[1].split(',')[0]) * 100:.0f}%"
+        else:
+            text = f"a2 = {p['key'].split('a2=')[1].rstrip(']')}"
+        if p["strikes"]:
+            text += f" ({p['strikes']} pad strike)"
+        off = (-60, 9) if "margin=0.08" in p["key"] else ((6, -12) if p["fam"] == "mpc" else (6, 4))
+        ax.annotate(text, (p["prop"], 100 * p["rate"]), textcoords="offset points", xytext=off,
+                    fontsize=7.5, color=COL[p["fam"]])
+    if capped:
+        x = np.mean([p["prop"] for p in capped])
+        y = max(100 * p["rate"] for p in capped)
+        ax.annotate("MPC with approach cap\n(margins 4, 8, 12%; hollow)", (x, y), textcoords="offset points",
+                    xytext=(-150, 12), fontsize=7.5, color=COL["mpc"], arrowprops=dict(arrowstyle="-", color=COL["mpc"], lw=0.6))
     ax.set(xlabel="median propellant left at the catch (t)", ylabel="catch rate (%)",
-           title=f"Fuel vs robustness on the tuning set ({pts[0]['n']} dispersed flights each, 95% intervals)")
-    ax.legend(handles=[mpatches.Patch(color=COL[k], label=NAME[k]) for k in COL], loc="lower left")
+           title=f"Fuel vs robustness, tuning set ({pts[0]['n']} dispersed flights per setting)")
+    ax.text(0.99, 0.02, "error bars: 95% intervals", transform=ax.transAxes, ha="right", fontsize=7.5, color="#6b7280")
+    ax.legend(handles=[mpatches.Patch(color=COL["mpc"], label="Convex MPC"),
+                       mpatches.Patch(color=COL["baseline"], label="Baseline (a2 = braking, m/s²)")], loc="lower left")
     fig.tight_layout()
     fig.savefig(OUT / "tradeoff.png")
     plt.close(fig)

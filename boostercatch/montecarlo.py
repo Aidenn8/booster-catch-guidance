@@ -33,7 +33,7 @@ def make_controller(spec):
     kw = {}
     for item in filter(None, rest.rstrip("]").split(",")):
         k, v = item.split("=")
-        kw[k] = bool(int(v)) if k == "approach_cap" else float(v)
+        kw[k] = bool(int(v)) if k in ("approach_cap", "eo_reserve") else float(v)
     return CONTROLLERS[name](**kw)
 
 
