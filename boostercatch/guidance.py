@@ -90,6 +90,7 @@ def solve_fixed(veh, tower, r0, v0, m0, tf, n_nodes=40, switch_time=None, engine
                 wind=(0.0, 0.0, 0.0), drag_profile=None, elapsed=0.0, total_tf=None,
                 use_offshore=True, use_glideslope=True, margin=0.0, extra_accel=None, gate_speed_max=None,
                 final_align=True, check_floor=True, approach_cap=True, tilt_margin_deg=0.0, switch_lag=0.0,
+                v_guess=None,
                 solver="CLARABEL"):
     """Minimum-fuel trajectory reaching the terminal gate at time tf (from now): centred
     above the catch point, `gate_height` up, moving straight down at the gate speed.
@@ -127,7 +128,13 @@ def solve_fixed(veh, tower, r0, v0, m0, tf, n_nodes=40, switch_time=None, engine
     z0 = np.log(m_low[:-1])
     mu1 = tmin * np.exp(-z0)
     mu2 = tmax * np.exp(-z0)
-    a_drag = np.zeros((N, 3)) if drag_profile is None else drag_profile
+    if drag_profile is not None:
+        a_drag = drag_profile
+    elif v_guess is not None:          # drag evaluated on a velocity guess (function of time from now)
+        tm = 0.5 * (t[:-1] + t[1:])
+        a_drag = drag_accel(np.array([v_guess(x) for x in tm]), np.full(N, m0), wind, veh)
+    else:
+        a_drag = np.zeros((N, 3))
     if extra_accel is not None:          # e.g. an estimated constant disturbance
         a_drag = a_drag + np.asarray(extra_accel)
     if switch_lag > 0 and ts is not None and 0.0 < ts < tf:
@@ -205,9 +212,20 @@ def solve_fixed(veh, tower, r0, v0, m0, tf, n_nodes=40, switch_time=None, engine
                 fuel=float(m0 - m[-1]), status=prob.status, tf=tf, lossless_gap=gap)
 
 
-def solve_with_drag(veh, tower, r0, v0, m0, tf, wind=(0.0, 0.0, 0.0), passes=2, **kw):
-    """Two passes: plan without drag, then re-plan with drag evaluated on that plan."""
-    plan = solve_fixed(veh, tower, r0, v0, m0, tf, wind=wind, **kw)
+def solve_with_drag(veh, tower, r0, v0, m0, tf, wind=(0.0, 0.0, 0.0), passes=2, v_guess=None, **kw):
+    """Drag by successive passes: plan with drag evaluated on a velocity guess, then re-plan
+    with drag evaluated on that plan.
+
+    The first pass must include drag. Drag supplies up to ~8 m/s^2 of braking early in the
+    burn, so a drag-free first pass is infeasible for any plan that uses its margins, and
+    re-planning from a plan's own state at the same margin would then fail: the planner
+    would contradict itself. The guess is the previous plan's velocities when re-planning
+    (`v_guess`, a function of time from now), else a straight line to the gate velocity."""
+    if v_guess is None:
+        v_end = np.array([0.0, 0.0, -tower.gate_speed])
+        v0a = np.asarray(v0, float)
+        v_guess = lambda x: v0a + (v_end - v0a) * min(x / tf, 1.0)  # noqa: E731
+    plan = solve_fixed(veh, tower, r0, v0, m0, tf, wind=wind, v_guess=v_guess, **kw)
     for _ in range(passes):
         if plan is None:
             return None

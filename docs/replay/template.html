@@ -75,6 +75,18 @@ h1 { font-family: var(--display); font-stretch: 112%; font-weight: 750; font-siz
 .chartbox { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 6px; min-width: 0 }
 .chartbox h3 { margin: 0; font: 600 0.85rem var(--body); color: var(--muted) }
 #chart { width: 100%; height: 170px; display: block }
+.findings { display: grid; gap: 14px; margin-top: 8px }
+.findings h2 { font: 750 1.35rem var(--display); font-stretch: 108%; margin: 0; text-wrap: balance }
+.findings p { margin: 0; max-width: 72ch }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px }
+.kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 4px; min-width: 0 }
+.kpi .n { font: 600 1.5rem var(--mono); font-variant-numeric: tabular-nums }
+.kpi .n.mpc { color: var(--mpc) } .kpi .n.base { color: var(--base) }
+.kpi .d { font-size: 0.85rem; color: var(--muted) }
+.fig { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 8px; display: grid; gap: 6px; min-width: 0 }
+.fig img { width: 100%; height: auto; display: block }
+.fig figcaption { color: #4b5563; font-size: 0.85rem; padding: 0 6px 4px }
+.lessons { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; max-width: 80ch }
 footer { color: var(--muted); font-size: 0.82rem; max-width: 90ch }
 footer p { margin: 0 0 6px }
 @media (max-width: 560px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)) } .stage { aspect-ratio: 4 / 3 } }
@@ -127,6 +139,8 @@ footer p { margin: 0 0 6px }
     <h3>Descent rate vs altitude above the arms (log scales). Dashed line: the terminal gate, 12 m above the arms.</h3>
     <canvas id="chart"></canvas>
   </div>
+
+  <!--FINDINGS-->
 
   <footer>
     <p>Simulation, not SpaceX data. Vehicle numbers are public estimates (Raptor 2: 2.26 MN, 40–100% throttle;

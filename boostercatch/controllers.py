@@ -258,8 +258,19 @@ class ConvexMPC(_Base):
         e = self.engines_for_planning(t)
         if self.engine_out and t >= self.scen.switch_time:
             e = (e[1], e[1])
+        v_guess = None
+        if self.plan is not None:   # drag on the previous plan's velocities (then the gate velocity)
+            p, t0 = self.plan, self.plan_t0
+            v_end = np.array([0.0, 0.0, -self.tower.gate_speed])
+
+            def v_guess(x):
+                tau = t + x - t0
+                if tau >= p.t[-1]:
+                    return v_end
+                return np.array([np.interp(tau, p.t, p.v[:, i]) for i in range(3)])
         return guidance.solve_with_drag(
             self.planning_vehicle(), self.tower, r, v, self.m_est, tf, passes=1, n_nodes=self.n_nodes,
+            v_guess=v_guess,
             switch_time=self.scen.switch_time, engines=e, elapsed=t, total_tf=t + tf, margin=margin,
             extra_accel=self._residual(), gate_speed_max=gate_speed_max, approach_cap=self.approach_cap,
             tilt_margin_deg=self._tilt_margin(margin), switch_lag=TAU_LAG)

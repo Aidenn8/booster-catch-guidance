@@ -98,6 +98,8 @@ def fig_trajectories():
     ax.plot(*TOWER.gate_point[[0, 2]], "k^", ms=6)
     ax.text(TOWER.gate_point[0] - 2, TOWER.gate_point[2] + 4, "gate", ha="right", fontsize=8)
     ax.plot(TOWER.catch_point[0], TOWER.catch_point[2], "kx", ms=7)
+    ax.text(-5, TOWER.catch_point[2] + 32, "arms (grab the booster's\ncatch pins, ~30 m above\nits centre of mass)", ha="right", fontsize=7.5)
+    ax.text(1.5, TOWER.catch_point[2] - 4, "catch point\n(centre of mass)", fontsize=7.5)
     ax.set(xlabel="x (m)", ylabel="altitude (m)", title="Last 200 m (close-up)", xlim=(-60, 25), ylim=(40, 200))
     ax = axs[1, 0]
     for key, (res, _) in runs.items():
