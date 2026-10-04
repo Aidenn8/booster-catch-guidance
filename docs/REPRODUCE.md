@@ -20,11 +20,12 @@ python scripts/run_mc.py tune --n 40 --tag _v2 --controllers \
 mpc[margin=0.04],mpc[margin=0.08],mpc[margin=0.12],\
 mpc[margin=0.04;approach_cap=0],mpc[margin=0.08;approach_cap=0],mpc[margin=0.12;approach_cap=0]"
 
-# evaluation set (seed 2026), structured sweeps: see REPORT.md for the chosen settings
-python scripts/run_mc.py random --n 300 --controllers "<mpc setting>,<baseline setting>"
-python scripts/run_mc.py engineout --controllers "..."
-python scripts/run_mc.py basin --controllers "..."
-python scripts/run_mc.py wind --controllers "..."
+# evaluation (tuned settings are the class defaults): engine-failure timing, wind, capture
+# basin and the 300-flight Monte Carlo, all through the thermal guard (~1.5 h on 4 cores)
+PY=.venv/bin/python bash scripts/run_all.sh 4
+
+# what engine-out tolerance costs: 45 / 50 / 55 t of landing propellant (~17 min)
+python scripts/run_mc.py eoprop --controllers "mpc[eo_reserve=1],mpc"
 
 python scripts/summarize.py results/mc_random.jsonl     # outcome table with 95% intervals
 python scripts/split_summary.py results/mc_random.jsonl # with / without engine failures

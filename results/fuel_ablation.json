@@ -1,0 +1,75 @@
+[
+ {
+  "kind": "plan",
+  "label": "fuel-optimal, no margins",
+  "tf": 11.684151785714285,
+  "fuel_t": 34.624429628128595
+ },
+ {
+  "kind": "plan",
+  "label": "+ 8% thrust margin",
+  "tf": 12.387276785714285,
+  "fuel_t": 35.04682350444485
+ },
+ {
+  "kind": "plan",
+  "label": "+ 2 deg tilt margin (the MPC's plan)",
+  "tf": 12.487723214285712,
+  "fuel_t": 35.29838113852509
+ },
+ {
+  "kind": "plan",
+  "label": "+ approach cap 10 m/s",
+  "tf": 14.044642857142854,
+  "fuel_t": 36.85736082875787
+ },
+ {
+  "kind": "closed",
+  "label": "MPC (chosen: 8% margin, no cap)",
+  "reason": "caught",
+  "prop_left_t": 5.477919801357318,
+  "catch_time": 17.059999999999725
+ },
+ {
+  "kind": "closed",
+  "label": "MPC, 4% margin",
+  "reason": "caught",
+  "prop_left_t": 5.5606385510028336,
+  "catch_time": 16.939999999999728
+ },
+ {
+  "kind": "closed",
+  "label": "MPC, 12% margin",
+  "reason": "caught",
+  "prop_left_t": 5.251473562814179,
+  "catch_time": 17.399999999999718
+ },
+ {
+  "kind": "closed",
+  "label": "MPC + approach cap",
+  "reason": "caught",
+  "prop_left_t": 3.4959629843758884,
+  "catch_time": 19.17999999999968
+ },
+ {
+  "kind": "closed",
+  "label": "Baseline a2=6",
+  "reason": "caught",
+  "prop_left_t": 2.1027995731914997,
+  "catch_time": 20.819999999999645
+ },
+ {
+  "kind": "closed",
+  "label": "Baseline a2=8 (chosen)",
+  "reason": "caught",
+  "prop_left_t": 3.9322724360740975,
+  "catch_time": 18.859999999999687
+ },
+ {
+  "kind": "closed",
+  "label": "Baseline a2=10",
+  "reason": "caught",
+  "prop_left_t": 5.208055505674274,
+  "catch_time": 17.499999999999716
+ }
+]

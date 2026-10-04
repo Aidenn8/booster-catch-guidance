@@ -135,4 +135,32 @@ These came out of debugging, and each one is a real property of the problem:
 
 ## Results
 
-*(filled in from the final Monte Carlo runs; see REPORT.md for all numbers)*
+All pilots flew the same 300 randomly disturbed landings (56 of them with an engine
+failure). The settings for each pilot were chosen beforehand on a separate set of 40 flights.
+
+* **Normal days (no engine failure, 244 flights):** the optimizer caught 243 (the
+  approach-capped version all 244); the hand-written baseline caught 217. The optimizer
+  also landed with more spare propellant (5.2 t vs 3.9 t, typical) and much closer to the
+  bullseye (4 cm vs 38 cm from the catch point).
+* **Odd starts:** shifting where the burn begins by up to 200 m sideways and 300 m up or
+  down, the optimizer still caught 127 of 143 starting points; the baseline 86. The
+  optimizer never hit the pad; the baseline did 25 times.
+* **Wind:** both work up to about 15 m/s; at 20 m/s the optimizer caught every flight and
+  the baseline two thirds. Past 25 m/s neither can: the wind pushes the tall booster
+  sideways harder than a nearly upright booster can correct.
+* **Engine failures:** this is where it gets interesting. The optimizer saves far more
+  boosters after an engine failure (16 of 56, versus 2), but because it brakes late to save
+  fuel, when an engine fails mid-burn it is lower and faster, and some of its aborts land
+  too close to the tower (20 of 56). Adding one rule (approach the tower no faster than
+  10 m/s) cuts that to 5, the fewest of all, at the cost of 1.5 t of propellant.
+* **Surviving any engine failure:** one more mathematical rule, "always keep enough braking
+  that two engines could still stop you", lets the optimizer survive an engine failure at
+  almost any moment (32 of 33 moments in calm air). With the normal 45 t of landing
+  propellant that leaves too little spare for real-world variation; with **50 t (about
+  5 t more)** it survived 19 of 20 engine failures in disturbed flights and never hit the
+  pad. That is a concrete answer to "what does engine-out tolerance cost?".
+
+The honest limits: this is a simplified model (the booster is treated as a point, not a
+spinning body), all vehicle numbers are public estimates, and the tolerances are my
+assumptions. The comparisons and the reasons behind them are the result, not the exact
+percentages.

@@ -191,7 +191,7 @@ def fig_outcomes(name="mc_random.jsonl"):
     if not rows:
         return None
     fams = ctl_keys(rows)
-    fig, axs = plt.subplots(1, 3, figsize=(12, 4.0), gridspec_kw={"width_ratios": [1, 1.4, 1.2]})
+    fig, axs = plt.subplots(1, 3, figsize=(13, 4.4), gridspec_kw={"width_ratios": [1.2, 1.4, 1.2]})
     ax = axs[0]
     for i, key in enumerate(fams):
         rs = [d for d in rows if d["controller"] == key]
@@ -203,7 +203,8 @@ def fig_outcomes(name="mc_random.jsonl"):
             if frac > 3:
                 ax.text(i, bottom + frac / 2, f"{oc.get(o, 0)}", ha="center", va="center", color="white", fontsize=8)
             bottom += frac
-    ax.set_xticks(range(len(fams)), [label(k).replace(" (", "\n(") for k in fams], fontsize=8)
+    short = {"mpc": "MPC", "mpc[approach_cap=1]": "MPC +\napproach\ncap", "mpc[eo_reserve=1]": "MPC +\nengine-out\nreserve", "baseline": "Baseline"}
+    ax.set_xticks(range(len(fams)), [short.get(k, label(k)) for k in fams], fontsize=8)
     ax.set(ylabel="% of flights", title=f"Outcomes ({len(rows) // len(fams)} dispersed flights each)", ylim=(0, 100))
     ax.legend(loc="lower right", fontsize=8)
     ax = axs[1]
@@ -322,18 +323,48 @@ def fig_basin():
             if d["caught"]:
                 ax.text(d["dx"], d["dz"], f"{d['propellant_left'] / 1e3:.1f}", ha="center", va="center", fontsize=6,
                         color="white")
-        ax.plot(0, 0, "k+", ms=10)
+        ax.add_patch(mpatches.Rectangle((-18, -22.5), 36, 45, fill=False, ec="black", lw=1.6))   # nominal ignition point
         ax.set(xlim=(-220, 220), ylim=(-325, 325), xlabel="ignition point shifted towards the tower (m)",
                title=f"{label(key)}: {sum(d['caught'] for d in rs)}/{len(rs)} caught")
         ax.grid(False)
         out[key] = (sum(d["caught"] for d in rs), len(rs), sum(outcome(d) == "pad strike" for d in rs))
     np.atleast_1d(axs)[0].set_ylabel("ignition altitude shift (m)")
     fig.suptitle("Capture basin: from which ignition points can each controller still catch the booster?\n"
-                 "(numbers = tonnes of propellant left; calm air, nominal vehicle)", fontsize=10)
+                 "(numbers = tonnes of propellant left; outlined = nominal ignition point; calm air)", fontsize=10)
     fig.legend(handles=[mpatches.Patch(color=c, label=o) for o, c in OC_COL.items()], loc="lower center", ncol=3,
                fontsize=8, frameon=False)
     fig.tight_layout(rect=(0, 0.05, 1, 1))
     fig.savefig(OUT / "basin.png")
+    plt.close(fig)
+    return out
+
+
+# ---------------------------------------------------------------- 7. propellant for engine-out tolerance
+def fig_eoprop():
+    rows = load("mc_eoprop.jsonl")
+    if not rows:
+        return None
+    fig, ax = plt.subplots(figsize=(6.8, 3.9))
+    out = {}
+    styles = {True: "-", False: "--"}
+    for key in ctl_keys(rows):
+        for eo in (True, False):
+            xs, ys, lo, hi = [], [], [], []
+            for prop in sorted({d["landing_propellant"] for d in rows}):
+                rs = [d for d in rows if d["controller"] == key and d["landing_propellant"] == prop
+                      and (d["d_engine_out_time"] is not None) == eo]
+                k = sum(d["caught"] for d in rs)
+                a, b = wilson(k, len(rs))
+                xs.append(prop / 1e3); ys.append(100 * k / len(rs)); lo.append(100 * a); hi.append(100 * b)
+                out[(key, eo, prop)] = (k, len(rs), sum(outcome(d) == "pad strike" for d in rs))
+            ax.plot(xs, ys, "o" + styles[eo], color=color(key),
+                    label=f"{label(key)}, {'one engine fails' if eo else 'no engine failure'}")
+            ax.fill_between(xs, lo, hi, color=color(key), alpha=0.08)
+    ax.set(xlabel="landing propellant (t)", ylabel="catch rate (%)", ylim=(-3, 103),
+           title="What does engine-out tolerance cost? (dispersed flights, 20 per point)")
+    ax.legend(fontsize=7.5, loc="center right", bbox_to_anchor=(1.0, 0.55))
+    fig.tight_layout()
+    fig.savefig(OUT / "eoprop.png")
     plt.close(fig)
     return out
 
@@ -346,4 +377,5 @@ if __name__ == "__main__":
     fig_wind()
     fig_engineout()
     fig_basin()
+    fig_eoprop()
     print("figures in", OUT)

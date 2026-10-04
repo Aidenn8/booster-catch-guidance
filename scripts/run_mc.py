@@ -71,9 +71,26 @@ def wind_jobs(ctls, n_per=12, seed=7):
     return jobs
 
 
+def eoprop_jobs(ctls, n=40, seed=31):
+    """How much landing propellant makes the engine-out reserve robust? The same dispersed
+    flights (full dispersion model) at 45, 50 and 55 t of landing propellant, half of them
+    with an engine failure at a random time, half without."""
+    rng = np.random.default_rng(seed)
+    base = []
+    for i in range(n):
+        d = MC.sample(rng, p_engine_out=1.0 if i % 2 == 0 else 0.0, seed=int(seed * 1000 + i))
+        base.append(asdict(d))
+    jobs = []
+    for j, prop in enumerate((45e3, 50e3, 55e3)):
+        for i, d in enumerate(base):
+            for key in ctls:
+                jobs.append((key, d, {"case_id": j * 1000 + i, "flight": i, "landing_propellant": prop}))
+    return jobs
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("campaign", choices=["pilot", "random", "engineout", "basin", "wind", "tune"])
+    ap.add_argument("campaign", choices=["pilot", "random", "engineout", "basin", "wind", "tune", "eoprop"])
     ap.add_argument("--controllers", default="mpc,baseline",
                     help="comma-separated; variants as name[k=v;k=v], e.g. mpc[margin=0.12]")
     ap.add_argument("--n", type=int, default=300)
@@ -86,7 +103,8 @@ def main():
         seed = {"pilot": 11, "random": 2026, "tune": 99}[a.campaign]
         jobs = MC.random_campaign(a.n, seed=seed, controllers=ctls)
     else:
-        jobs = {"engineout": engineout_jobs, "basin": basin_jobs, "wind": wind_jobs}[a.campaign](ctls)
+        jobs = {"engineout": engineout_jobs, "basin": basin_jobs, "wind": wind_jobs,
+                "eoprop": eoprop_jobs}[a.campaign](ctls)
     MC.run_jobs(jobs, str(RESULTS / f"mc_{a.campaign}{a.tag}.jsonl"), workers=a.workers)
 
 

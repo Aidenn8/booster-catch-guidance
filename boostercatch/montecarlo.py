@@ -16,7 +16,7 @@ import json
 import os
 import time
 from concurrent.futures import ProcessPoolExecutor
-from dataclasses import asdict
+from dataclasses import asdict, replace
 
 import numpy as np
 
@@ -61,9 +61,13 @@ def run_case(job):
     key, disp_d, tags = job
     disp = sim.Dispersion(**disp_d)
     ctl = make_controller(key)
+    # optional vehicle variant (e.g. more landing propellant): both the truth and the
+    # controller's model use it
+    veh = replace(SUPER_HEAVY, landing_propellant=tags["landing_propellant"]) if "landing_propellant" in tags \
+        else SUPER_HEAVY
     t0 = time.time()
     try:
-        res = sim.simulate(ctl, SUPER_HEAVY, TOWER, NOMINAL, disp, record_every=10)
+        res = sim.simulate(ctl, veh, TOWER, NOMINAL, disp, record_every=10)
         out = {"caught": bool(res.caught), "reason": res.reason, "pad_safe": bool(res.pad_safe),
                "impact": res.impact, "abort_reason": res.abort_reason, "abort_time": res.abort_time,
                **res.capture,
@@ -97,6 +101,7 @@ def run_jobs(jobs, out_path, workers=4):
                 d = json.loads(line)
                 done.add((d["controller"], d["case_id"]))
     todo = [j for j in jobs if (j[0], j[2]["case_id"]) not in done]
+    assert len({(j[0], j[2]["case_id"]) for j in jobs}) == len(jobs), "case ids must be unique per controller"
     print(f"{len(jobs)} jobs, {len(jobs) - len(todo)} already done, running {len(todo)} on {workers} workers",
           flush=True)
     t0 = time.time()

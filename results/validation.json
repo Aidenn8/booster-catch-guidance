@@ -1,47 +1,47 @@
 {
- "nominal_solve_s": 0.23487186431884766,
- "nominal_rel_lossless_gap": 2.137738586686826e-07,
+ "nominal_solve_s": 0.37432003021240234,
+ "nominal_rel_lossless_gap": 1.4019684166224675e-07,
  "vertical": {
-  "convex_fuel_kg": 16524.59184791299,
+  "convex_fuel_kg": 16524.589739991585,
   "shooting_fuel_kg": 16520.191966391692,
   "convex_tf": 10.2607421875,
   "shooting_tf": 10.255701648757519,
-  "rel_fuel_diff": 0.0002663335589712943
+  "rel_fuel_diff": 0.0002662059623059539
  },
  "nlp": {
   "convex_tf": 11.221017020089286,
-  "convex_fuel_kg": 18178.53574082139,
-  "convex_s": 1.025644063949585,
+  "convex_fuel_kg": 18173.261536293838,
+  "convex_s": 1.9778921604156494,
   "slsqp": {
    "gentle braking, tf 14 s": {
     "tf": 11.232651904801966,
     "fuel_kg": 18170.171702295134,
     "iterations": 88,
     "success": true,
-    "seconds": 1.0328888893127441,
-    "rel_fuel_diff_convex_minus_nlp": 0.00046031697791819337
+    "seconds": 1.8632190227508545,
+    "rel_fuel_diff_convex_minus_nlp": 0.00017004979640963496
    },
    "hover thrust, tf 18 s": {
     "tf": 11.232648110701417,
     "fuel_kg": 18170.17165351374,
     "iterations": 108,
     "success": true,
-    "seconds": 1.2456889152526855,
-    "rel_fuel_diff_convex_minus_nlp": 0.0004603196638504853
+    "seconds": 2.276819944381714,
+    "rel_fuel_diff_convex_minus_nlp": 0.00017005248156264763
    },
    "random thrust, tf 12 s": {
     "tf": 11.232648225791944,
     "fuel_kg": 18170.171734436066,
     "iterations": 191,
     "success": true,
-    "seconds": 2.1708998680114746,
-    "rel_fuel_diff_convex_minus_nlp": 0.00046031520821964204
+    "seconds": 3.96454119682312,
+    "rel_fuel_diff_convex_minus_nlp": 0.00017004802722453264
    }
   }
  },
  "sim_vs_plan": {
-  "pos_err_m": 3.724246076637049,
-  "vel_err_ms": 0.1653454358188666,
-  "mass_err_kg": 35.70257691806182
+  "pos_err_m": 4.692186983472546,
+  "vel_err_ms": 0.4010787483094652,
+  "mass_err_kg": 39.87639176053926
  }
 }
