@@ -171,7 +171,9 @@ class _Base:
         """Steer towards a point offshore (full tilt allowed) while holding a moderate
         descent rate, braking as hard as needed."""
         target = np.array(self.tower.catch_point)
-        aim = np.array([target[0] + self.DIVERT_X, r[1]])
+        # always aim further offshore than the booster is now: a fixed aim point would pull
+        # a booster that is already beyond it back towards the tower
+        aim = np.array([min(target[0] + self.DIVERT_X, r[0] - 30.0), r[1]])
         a_h = 0.4 * (aim - r[:2]) - 1.0 * v[:2]
         az = G0 + 1.5 * (-self.DIVERT_DESCENT - v[2]) - self.accel_ff(v)[2]
         return self.m_eff * limit_tilt(np.array([a_h[0], a_h[1], max(az, 1.0)]), self.veh.divert_tilt_deg)
@@ -181,7 +183,7 @@ class _Base:
         h = r[2] - self.tower.catch_point[2]
         if self.abort_reason is not None:
             return self._output(self.divert_command(r, v, n_eng), n_eng)
-        if not self.in_terminal and t > self.scen.switch_time and self._enter_terminal(t, h):
+        if not self.in_terminal and t > self.scen.switch_time and self._enter_terminal(t, h, v[2]):
             self.in_terminal = True
             if not self.gate_check(r, v):
                 self.abort(t, "no-go at the gate")
@@ -198,8 +200,12 @@ class _Base:
             cmd = limit_tilt(cmd, self.veh.max_tilt_deg)
         return self._output(cmd, n_eng)
 
-    def _enter_terminal(self, t, h):
-        return h <= self.tower.gate_height
+    def _enter_terminal(self, t, h, vz):
+        """Switch to the terminal descent one throttle lag before reaching the gate: the
+        engines need ~TAU_LAG to drop from approach braking to the terminal thrust, and
+        braking too long there leaves the booster crawling above the arms (it cannot speed
+        its descent back up against the throttle floor)."""
+        return h <= self.tower.gate_height + max(-vz, 0.0) * TAU_LAG
 
 
 class ConvexMPC(_Base):
@@ -229,12 +235,13 @@ class ConvexMPC(_Base):
             self.force_replan = True
         super().notify_engine_out(t)
 
-    def _enter_terminal(self, t, h):
-        return h <= self.tower.gate_height or (self.t_gate is not None and t >= self.t_gate)
+    def _enter_terminal(self, t, h, vz):
+        return super()._enter_terminal(t, h, vz) or (self.t_gate is not None and t >= self.t_gate)
 
     def _residual(self):
-        """Disturbance the plan's drag model does not explain (wind, thrust/mass error), held
-        constant over the plan (offset-free MPC); capped, since it is an estimate."""
+        """Acceleration the drag model and the thrust-effectiveness estimate do not explain
+        (mostly wind), held constant over the plan (offset-free MPC); capped, since it is
+        an estimate."""
         return np.clip(self.d_hat, -self.residual_cap, self.residual_cap)
 
     def planning_vehicle(self):
@@ -255,7 +262,7 @@ class ConvexMPC(_Base):
             self.planning_vehicle(), self.tower, r, v, self.m_est, tf, passes=1, n_nodes=self.n_nodes,
             switch_time=self.scen.switch_time, engines=e, elapsed=t, total_tf=t + tf, margin=margin,
             extra_accel=self._residual(), gate_speed_max=gate_speed_max, approach_cap=self.approach_cap,
-            tilt_margin_deg=self._tilt_margin(margin))
+            tilt_margin_deg=self._tilt_margin(margin), switch_lag=TAU_LAG)
 
     def _replan(self, t, r, v):
         self.n_solves += 1
@@ -263,7 +270,7 @@ class ConvexMPC(_Base):
             p = guidance.solve_earliest(
                 self.planning_vehicle(), self.tower, r, v, self.m_est, extra=self.extra_time, n_nodes=self.n_nodes,
                 switch_time=self.scen.switch_time, engines=self.engines_for_planning(t), margin=self.margin,
-                approach_cap=self.approach_cap, tilt_margin_deg=self.tilt_margin)
+                approach_cap=self.approach_cap, tilt_margin_deg=self.tilt_margin, switch_lag=TAU_LAG)
             if p is not None:
                 self.plan, self.plan_t0, self.t_gate = p, t, t + p.tf
             else:
@@ -275,14 +282,18 @@ class ConvexMPC(_Base):
         # but leaves less slack. Keep the thrust margin if possible; if the booster has
         # drifted to where no plan fits inside it, use the full thrust range rather than
         # fly a stale plan.
-        for margin in (self.margin, self.margin / 2, 0.0):
-            for d in self.shifts:
-                if remaining + d < 1.0:
-                    continue
-                p = self._solve(t, r, v, remaining + d, margin)
-                if p is not None:
-                    self.plan, self.plan_t0, self.t_gate = p, t, t + p.tf
-                    return
+        # A plan that sits exactly on its margin can become infeasible at the next re-plan
+        # from re-gridding noise alone; slipping the gate costs ~0.5 t per half second, so
+        # first try keeping the gate time with three quarters of the margin.
+        tries = [(0.0, self.margin), (0.0, 0.75 * self.margin)]
+        tries += [(d, m) for m in (self.margin, self.margin / 2, 0.0) for d in self.shifts if (d, m) not in tries]
+        for d, margin in tries:
+            if remaining + d < 1.0:
+                continue
+            p = self._solve(t, r, v, remaining + d, margin)
+            if p is not None:
+                self.plan, self.plan_t0, self.t_gate = p, t, t + p.tf
+                return
         self.failed_replans += 1
         self.fail_times.append((round(t, 2), round(remaining, 2)))
         # Recovery: reach the gate centred but allow a faster descent through it (the

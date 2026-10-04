@@ -101,7 +101,7 @@ footer p { margin: 0 0 6px }
     <div class="cams" id="cams">
       <button data-cam="tower" aria-pressed="true">Tower</button>
       <button data-cam="chase" aria-pressed="false">Chase</button>
-      <button data-cam="side" aria-pressed="false">Side</button>
+      <button data-cam="overview" aria-pressed="false">Whole flight</button>
     </div>
     <div class="tag" id="tag-mpc" style="background:var(--mpc)">MPC</div>
     <div class="tag" id="tag-baseline" style="background:var(--base)">Baseline</div>
@@ -167,7 +167,8 @@ footer p { margin: 0 0 6px }
   controls.enableDamping = true;
   controls.addEventListener("start", () => { if (cam !== "free") setCam("free"); });
 
-  scene.add(new THREE.HemisphereLight(0xcfe0ff, 0x3a3222, 0.9));
+  scene.add(new THREE.HemisphereLight(0xcfe0ff, 0x6a5a40, 1.0));
+  scene.add(new THREE.AmbientLight(0xffffff, 0.25));
   const sun = new THREE.DirectionalLight(0xffe2c0, 0.9);
   sun.position.set(-800, 600, 400);
   scene.add(sun);
@@ -218,7 +219,7 @@ footer p { margin: 0 0 6px }
   // boosters
   function makeBooster(color) {
     const g = new THREE.Group();
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(D / 2, D / 2, L, 32), new THREE.MeshStandardMaterial({ color: 0xc9ced6, metalness: 0.75, roughness: 0.32 }));
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(D / 2, D / 2, L, 32), new THREE.MeshStandardMaterial({ color: 0xd9dde3, metalness: 0.25, roughness: 0.45 }));
     g.add(body);
     const band = new THREE.Mesh(new THREE.CylinderGeometry(D / 2 + 0.08, D / 2 + 0.08, 3, 32), new THREE.MeshStandardMaterial({ color, roughness: 0.5 }));
     band.position.y = L / 2 - 9; g.add(band);
@@ -227,11 +228,16 @@ footer p { margin: 0 0 6px }
       const a = i * Math.PI / 2 + Math.PI / 4;
       fin.position.set(Math.cos(a) * (D / 2 + 2.3), L / 2 - 4, Math.sin(a) * (D / 2 + 2.3)); fin.rotation.y = -a; g.add(fin);
     }
-    const plume = new THREE.Mesh(new THREE.ConeGeometry(D * 0.42, 1, 24, 1, true), new THREE.MeshBasicMaterial({ color: 0xffb35c, transparent: true, opacity: 0.75, blending: THREE.AdditiveBlending, depthWrite: false }));
-    plume.geometry.translate(0, -0.5, 0); plume.rotation.x = Math.PI; plume.position.y = -L / 2;
-    const plumeHolder = new THREE.Group(); plumeHolder.position.y = -L / 2; plume.position.y = 0; plumeHolder.add(plume); g.add(plumeHolder);
-    const core = new THREE.Mesh(new THREE.ConeGeometry(D * 0.2, 1, 16, 1, true), new THREE.MeshBasicMaterial({ color: 0xfff1d6, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }));
-    core.geometry.translate(0, -0.5, 0); core.rotation.x = Math.PI; plumeHolder.add(core);
+    // flame cones: wide end at the nozzles (y = 0 of the holder), tip pointing away from the booster
+    const flame = (r, color, opacity) => {
+      const geo = new THREE.ConeGeometry(r, 1, 24, 1, true);
+      geo.rotateX(Math.PI); geo.translate(0, -0.5, 0);
+      return new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color, transparent: true, opacity, side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending, depthWrite: false }));
+    };
+    const plumeHolder = new THREE.Group(); plumeHolder.position.y = -L / 2; g.add(plumeHolder);
+    const plume = flame(D * 0.42, 0xffa64d, 0.7), core = flame(D * 0.2, 0xfff1d6, 0.9);
+    plumeHolder.add(plume); plumeHolder.add(core);
     scene.add(g);
     return { g, plumeHolder, plume, core };
   }
@@ -314,8 +320,8 @@ footer p { margin: 0 0 6px }
   function setCam(c) {
     cam = c;
     [...document.querySelectorAll("#cams button")].forEach((b) => b.setAttribute("aria-pressed", b.dataset.cam === c ? "true" : "false"));
-    if (c === "tower") { camera.position.set(-520, 210, -420); controls.target.set(-90, 330, 0); }
-    if (c === "side") { camera.position.set(-140, 520, -1350); controls.target.set(-140, 520, 0); }
+    if (c === "tower") { camera.position.set(-205, 95, -250); controls.target.set(-30, 120, 0); }
+    if (c === "overview") { camera.position.set(-260, 560, -1700); controls.target.set(-140, 560, 0); }
   }
   document.querySelectorAll("#cams button").forEach((b) => b.addEventListener("click", () => setCam(b.dataset.cam)));
 

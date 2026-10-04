@@ -138,10 +138,11 @@ def simulate(controller, veh, tower, scen, disp=Dispersion(), t_max=60.0, record
         k4 = deriv(r + DT * k3[0], v + DT * k3[1], m + DT * k3[2])
         r_new = r + DT / 6 * (k1[0] + 2 * k2[0] + 2 * k3[0] + k4[0])
         v_new = v + DT / 6 * (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1])
-        m = m + DT / 6 * (k1[2] + 2 * k2[2] + 2 * k3[2] + k4[2])
-        if step % record_every == 0:
+        m_new = m + DT / 6 * (k1[2] + 2 * k2[2] + 2 * k3[2] + k4[2])
+        if step % record_every == 0:   # the state at time t (before this step)
             log_t.append(t); log_r.append(r.copy()); log_v.append(v.copy()); log_m.append(m)
             log_T.append(thrust_actual.copy()); log_n.append(n_eng)
+        m = m_new
 
         def finish(caught, reason, cap=None, impact=None):
             ar, at = getattr(controller, "abort_reason", None), getattr(controller, "abort_time", None)

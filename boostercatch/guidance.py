@@ -70,10 +70,26 @@ def drag_accel(v, m, wind, veh):
     return np.concatenate([side, axial], axis=-1) / m
 
 
+def time_grid(tf, N, breaks):
+    """N intervals over [0, tf], with nodes exactly at each break inside (0, tf)."""
+    bs = sorted({float(b) for b in breaks if b is not None and 1e-3 < b < tf - 1e-3})
+    edges = np.array([0.0] + bs + [tf])
+    lens = np.diff(edges)
+    n = np.maximum(1, np.round(N * lens / tf).astype(int))
+    while n.sum() > N:
+        n[np.argmax(np.where(n > 1, n, -1))] -= 1     # take from the most finely split segment
+    while n.sum() < N:
+        n[np.argmax(lens / n)] += 1
+    t = [0.0]
+    for a, b, k in zip(edges[:-1], edges[1:], n):
+        t.extend(np.linspace(a, b, k + 1)[1:])
+    return np.array(t)
+
+
 def solve_fixed(veh, tower, r0, v0, m0, tf, n_nodes=40, switch_time=None, engines=(13, 3),
                 wind=(0.0, 0.0, 0.0), drag_profile=None, elapsed=0.0, total_tf=None,
                 use_offshore=True, use_glideslope=True, margin=0.0, extra_accel=None, gate_speed_max=None,
-                final_align=True, check_floor=True, approach_cap=True, tilt_margin_deg=0.0,
+                final_align=True, check_floor=True, approach_cap=True, tilt_margin_deg=0.0, switch_lag=0.0,
                 solver="CLARABEL"):
     """Minimum-fuel trajectory reaching the terminal gate at time tf (from now): centred
     above the catch point, `gate_height` up, moving straight down at the gate speed.
@@ -91,17 +107,16 @@ def solve_fixed(veh, tower, r0, v0, m0, tf, n_nodes=40, switch_time=None, engine
     ride the tilt limit while they cancel sideways speed.
     """
     N = n_nodes
-    # time grid: if the engine switch falls inside the horizon, put a node exactly on it,
-    # so no interval mixes the 13-engine and 3-engine thrust ranges
+    total_tf = total_tf if total_tf is not None else tf + elapsed
+    # time grid with a node exactly on every boundary where the rules change: the engine
+    # switch (no interval mixes the 13- and 3-engine thrust ranges), the start of the commit
+    # window and of the final alignment. Otherwise a constraint checked only at nodes can
+    # be violated between them, and the next re-plan (on a different grid) finds the same
+    # gate time infeasible and has to slip it.
     ts = None if switch_time is None else switch_time - elapsed
-    if ts is not None and 0.0 < ts < tf:
-        n1 = int(np.clip(round(N * ts / tf), 2, N - 2))
-        t = np.concatenate([np.linspace(0.0, ts, n1 + 1), np.linspace(ts, tf, N - n1 + 1)[1:]])
-    else:
-        t = np.linspace(0.0, tf, N + 1)
+    t = time_grid(tf, N, [ts, total_tf - elapsed - tower.commit_time, total_tf - elapsed - FINAL_ALIGN_TIME])
     dt = np.diff(t)
     tt = t[:-1] + elapsed                      # absolute time since ignition, per interval
-    total_tf = total_tf if total_tf is not None else tf + elapsed
     n_eng = np.where(tt < (switch_time - 1e-9 if switch_time is not None else -1), engines[0], engines[1])
     tmin = n_eng * veh.engine_thrust * veh.throttle_min
     tmax = n_eng * veh.engine_thrust * veh.throttle_max * (1 - margin)
@@ -115,6 +130,19 @@ def solve_fixed(veh, tower, r0, v0, m0, tf, n_nodes=40, switch_time=None, engine
     a_drag = np.zeros((N, 3)) if drag_profile is None else drag_profile
     if extra_accel is not None:          # e.g. an estimated constant disturbance
         a_drag = a_drag + np.asarray(extra_accel)
+    if switch_lag > 0 and ts is not None and 0.0 < ts < tf:
+        # Engine-switch tail-off: thrust lags commands by ~switch_lag, so when the outer
+        # engines shut down the booster keeps ~switch_lag x (13-engine minimum - planned
+        # 3-engine thrust) of extra braking impulse. Approximate the planned 3-engine thrust
+        # by its (margined) maximum and spread the impulse over the first interval after
+        # the switch as a known upward acceleration.
+        k_sw = int(np.searchsorted(t, ts - 1e-9))
+        if k_sw < N:
+            lo1 = engines[0] * veh.engine_thrust * veh.throttle_min
+            hi2 = engines[1] * veh.engine_thrust * veh.throttle_max * (1 - margin)
+            impulse = switch_lag * max(lo1 - hi2, 0.0)
+            a_drag = a_drag.copy()
+            a_drag[k_sw, 2] += impulse / (m0 * dt[k_sw])
 
     r = cp.Variable((N + 1, 3))
     v = cp.Variable((N + 1, 3))
@@ -139,13 +167,13 @@ def solve_fixed(veh, tower, r0, v0, m0, tf, n_nodes=40, switch_time=None, engine
         dz = z[k] - z0[k]
         cons += [s[k] >= mu1[k] * (1 - dz + cp.square(dz) / 2),
                  s[k] <= mu2[k] * (1 - dz)]
-        in_final = final_align and (total_tf - tt[k]) <= FINAL_ALIGN_TIME   # upright for the hand-over
+        in_final = final_align and (total_tf - tt[k]) <= FINAL_ALIGN_TIME + 1e-6   # upright for the hand-over
         cons += [u[k][2] >= (cos_fin if in_final else cos_max) * s[k]]
     # mass cannot drop below dry mass
     cons += [z >= np.log(veh.dry_mass)]
     if use_offshore:
         for k in range(N + 1):
-            if (total_tf - (t[k] + elapsed)) > tower.commit_time:
+            if (total_tf - (t[k] + elapsed)) > tower.commit_time + 1e-6:
                 cons += [r[k][0] <= target[0] - tower.standoff]
             elif approach_cap:
                 # inside the commit window, close on the tower no faster than this, so a
