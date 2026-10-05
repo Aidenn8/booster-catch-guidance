@@ -350,7 +350,13 @@ part of the work.
 
 * **Point mass.** Thrust direction stands in for attitude: no rotational dynamics, engine
   gimbal limits, grid fins, slosh, flex or aerodynamic moments. Tilt limits and lag are the
-  only proxies.
+  only proxies. The tower-strike check uses the centre of mass plus the booster's radius,
+  which is consistent with a body held near upright while the engines gimbal (up to ~15°)
+  to tilt the thrust. The 3D replay draws it that way: the body leans about a third of the
+  way into the thrust and the flames gimbal the rest. (An earlier version of the replay
+  rotated the whole 71 m body to the full thrust tilt, which swung the engine end up to
+  15 m into the tower in the drawing although the simulated booster never came within
+  1.75 m of it.)
 * **Public estimates.** Vehicle mass, propellant, drag coefficients, tower geometry, catch
   height and tolerances are estimates. Absolute catch rates should not be read as
   predictions for the real vehicle; the comparisons, mechanisms and trade-offs are the result.

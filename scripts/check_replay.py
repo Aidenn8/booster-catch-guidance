@@ -1,8 +1,9 @@
 """Headless browser check of the replay page: console errors, layout, and screenshots of
-the 3D view at several moments and camera modes.
+the 3D view at several moments, camera modes and times of day.
 
     <python with playwright> scripts/check_replay.py [out_dir]
 """
+import json
 import sys
 from pathlib import Path
 
@@ -13,25 +14,24 @@ page_path = ROOT / "docs" / "replay" / "index.html"
 out = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "work" / "replay_check"
 out.mkdir(parents=True, exist_ok=True)
 
-import json  # noqa: E402
-
 _fl = json.loads((ROOT / "docs" / "replay" / "flights.json").read_text())["flights"]
 _eo = _fl[5]["runs"]
 _tend = max(r["t"][-1] for r in _eo.values()) + 4.5
 CRASH = int((_eo["mpc"]["t"][-1] + 0.9) / _tend * 1000)
 
-SHOTS = [  # (tab index, scrub fraction 0-1000, camera button or None, name)
-    (0, 20, None, "nominal_ignition"),
-    (0, 420, None, "nominal_descent"),
-    (0, 720, None, "nominal_arms"),
-    (0, 790, None, "nominal_caught"),
-    (0, 500, "overview", "nominal_overview"),
-    (0, 640, "tower", "nominal_tower"),
-    (5, 640, None, "engine10_mid"),
-    (5, 900, "follow", "engine10_crash"),
-    (5, CRASH, "mpcfollow", "engine10_mpc_crash"),
-    (5, CRASH + 150, "mpcfollow", "engine10_mpc_smoke"),
-    (1, 700, None, "crosswind_arms"),
+SHOTS = [  # (scenario index, scrub 0-1000, camera / action, time of day, name)
+    (0, 20, None, "sunset", "nominal_ignition"),
+    (0, 420, None, "sunset", "nominal_descent"),
+    (0, 640, "tower", "sunset", "nominal_tower_close"),
+    (0, 700, None, "sunset", "nominal_arms"),
+    (0, 790, None, "sunset", "nominal_caught"),
+    (0, 500, "wide", "sunset", "nominal_wide"),
+    (0, 560, None, "day", "nominal_day"),
+    (0, 640, None, "night", "nominal_night"),
+    (0, 760, "tower", "night", "nominal_night_arms"),
+    (1, 640, "tower", "sunset", "crosswind_tower"),
+    (5, CRASH, "follow0", "sunset", "engine10_mpc_crash"),
+    (5, CRASH, "follow0", "night", "engine10_mpc_crash_night"),
 ]
 
 
@@ -48,16 +48,19 @@ with sync_playwright() as p:
     pg.goto(page_path.as_uri())
     pg.wait_for_timeout(3500)
     pg.screenshot(path=str(out / "page_dark.png"), full_page=True)
-    for tab, frac, cam, name in SHOTS:
-        pg.locator(".tab").nth(tab).click()
+    pg.locator("#stage").screenshot(path=str(out / "start.png"))
+    for scn, frac, cam, tod, name in SHOTS:
+        pg.locator(".scn").nth(scn).click()
         pg.wait_for_timeout(300)
-        if cam == "mpcfollow":
-            pg.locator(".card .follow").first.click()   # follow the MPC booster
+        pg.locator(f'#tod button[data-tod="{tod}"]').click()
+        if cam == "follow0":
+            pg.locator(".card").first.click()      # watch the MPC booster
+            pg.locator('#cams button[data-cam="auto"]').click()
         elif cam:
             pg.locator(f'#cams button[data-cam="{cam}"]').click()
         scrub(pg, frac)
-        pg.wait_for_timeout(1600 if cam else 900)
-        scrub(pg, frac)          # re-seek so the director camera snaps to the shot for this moment
+        pg.wait_for_timeout(1500)
+        scrub(pg, frac)
         pg.wait_for_timeout(700)
         pg.locator("#stage").screenshot(path=str(out / f"{name}.png"))
         pg.locator('#cams button[data-cam="auto"]').click()
@@ -72,6 +75,7 @@ with sync_playwright() as p:
         pg.on("pageerror", lambda e: errs.append(str(e)))
         pg.goto(page_path.as_uri())
         pg.wait_for_timeout(3000)
+        pg.screenshot(path=str(out / f"page_{scheme}_{w}_start.png"), full_page=True)
         scrub(pg, 760)
         pg.wait_for_timeout(900)
         pg.screenshot(path=str(out / f"page_{scheme}_{w}.png"), full_page=True)
