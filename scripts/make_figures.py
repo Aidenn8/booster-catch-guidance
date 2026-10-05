@@ -28,13 +28,19 @@ from summarize import outcome, wilson  # noqa: E402
 RES = ROOT / "results"
 OUT = ROOT / "docs" / "images"
 OUT.mkdir(parents=True, exist_ok=True)
-COL = {"mpc": "#0072B2", "baseline": "#E69F00"}
+COL = {"mpc": "#56B4E9", "baseline": "#E69F00"}
 NAME = {"mpc": "Convex MPC", "baseline": "Baseline"}
-OC_COL = {"caught": "#009E73", "safe miss": "#BDBDBD", "pad strike": "#D55E00"}
-# paper style: serif text, no titles inside the plots (the captions carry them), panel
-# letters on multi-panel figures, thin axes with inward ticks
-plt.rcParams.update({"figure.dpi": 100, "savefig.dpi": 200, "savefig.bbox": "tight", "savefig.pad_inches": 0.04,
-                     "font.family": "serif", "font.serif": ["STIXGeneral", "DejaVu Serif"], "mathtext.fontset": "stix",
+OC_COL = {"caught": "#009E73", "safe miss": "#6f6f6f", "pad strike": "#D55E00"}
+INK, DIM, AXIS = "#ececec", "#a3a3a3", "#5c5c5c"
+# report style, matching the page: black background, white sans text, no titles inside the
+# plots (the captions carry them), panel letters on multi-panel figures, thin axes
+plt.rcParams.update({"figure.dpi": 100, "savefig.dpi": 200, "savefig.bbox": "tight", "savefig.pad_inches": 0.06,
+                     "figure.facecolor": "#000000", "axes.facecolor": "#000000", "savefig.facecolor": "#000000",
+                     "text.color": INK, "axes.labelcolor": INK, "axes.edgecolor": AXIS, "legend.labelcolor": INK,
+                     "xtick.color": AXIS, "ytick.color": AXIS, "xtick.labelcolor": DIM, "ytick.labelcolor": DIM,
+                     "patch.edgecolor": "#d0d0d0", "grid.color": "#2a2a2a",
+                     "font.family": "sans-serif", "font.sans-serif": ["Inter", "Helvetica Neue", "Helvetica", "Arial", "DejaVu Sans"],
+                     "mathtext.fontset": "stixsans",
                      "font.size": 9, "axes.titlesize": 9, "axes.labelsize": 9, "legend.fontsize": 8,
                      "xtick.labelsize": 8, "ytick.labelsize": 8, "axes.linewidth": 0.6,
                      "xtick.direction": "in", "ytick.direction": "in", "xtick.major.width": 0.6, "ytick.major.width": 0.6,
@@ -90,16 +96,16 @@ def color(key):
     if "eo_reserve=1" in key:
         return "#CC79A7"
     c = COL[family(key)]
-    return c if "[" not in key else {"mpc": "#56B4E9", "baseline": "#F0C36B"}[family(key)]
+    return c if "[" not in key else {"mpc": "#A9D6F5", "baseline": "#F0C36B"}[family(key)]
 
 
 def draw_tower(ax, view="side"):
     if view == "side":
-        ax.add_patch(mpatches.Rectangle((9, 0), 12, 146, color="#9a9a9a", alpha=0.45, lw=0))
-        ax.plot([-4, 9], [TOWER.catch_point[2] + 30] * 2, color="#333333", lw=1.6)   # arms (schematic)
-        ax.add_patch(mpatches.Rectangle((-12, 0), 24, 20, color="#c4c4c4", alpha=0.5, lw=0))  # launch mount
+        ax.add_patch(mpatches.Rectangle((9, 0), 12, 146, color="#3d3d3d", lw=0))
+        ax.plot([-4, 9], [TOWER.catch_point[2] + 30] * 2, color="#d0d0d0", lw=1.6)   # arms (schematic)
+        ax.add_patch(mpatches.Rectangle((-12, 0), 24, 20, color="#262626", lw=0))  # launch mount
     else:
-        ax.add_patch(mpatches.Rectangle((9, -10), 12, 20, color="#9a9a9a", alpha=0.45, lw=0))
+        ax.add_patch(mpatches.Rectangle((9, -10), 12, 20, color="#3d3d3d", lw=0))
         ax.add_patch(mpatches.Circle((0, 0), sim.PAD_RADIUS, fill=False, ls="--", color="#D55E00", alpha=0.7))
 
 
@@ -113,7 +119,7 @@ def fig_trajectories():
     for key, (res, _) in runs.items():
         ax.plot(res.r[:, 0], res.r[:, 2], color=COL[key], label=NAME[key])
     draw_tower(ax)
-    ax.axvline(-TOWER.standoff, color="k", ls=":", lw=0.8)
+    ax.axvline(-TOWER.standoff, color=DIM, ls=":", lw=0.8)
     ax.text(-TOWER.standoff - 3, 560, "offshore until the\ncommit window", ha="right", fontsize=7.5)
     ax.set(xlabel="$x$, towards the tower (m)", ylabel="altitude (m)", xlim=(-300, 40))
     panel(ax, "a", "side view")
@@ -123,9 +129,9 @@ def fig_trajectories():
         sel = res.r[:, 2] < 200
         ax.plot(res.r[sel, 0], res.r[sel, 2], color=COL[key])
     draw_tower(ax)
-    ax.plot(*TOWER.gate_point[[0, 2]], "k^", ms=6)
+    ax.plot(*TOWER.gate_point[[0, 2]], "^", color=INK, ms=6)
     ax.text(TOWER.gate_point[0] - 2, TOWER.gate_point[2] + 4, "gate", ha="right", fontsize=7.5)
-    ax.plot(TOWER.catch_point[0], TOWER.catch_point[2], "kx", ms=7)
+    ax.plot(TOWER.catch_point[0], TOWER.catch_point[2], "x", color=INK, ms=7)
     ax.text(-5, TOWER.catch_point[2] + 32, "arms (catch pins ~30 m\nabove the centre of mass)", ha="right", fontsize=7)
     ax.text(1.5, TOWER.catch_point[2] - 4, "catch point", fontsize=7)
     ax.set(xlabel="$x$ (m)", ylabel="altitude (m)", xlim=(-60, 25), ylim=(40, 200))
@@ -142,7 +148,7 @@ def fig_trajectories():
         ax.plot(res.t, np.linalg.norm(res.thrust, axis=1) / 1e6, color=COL[key])
     for n, t0, t1 in ((13, 0, NOMINAL.switch_time), (3, NOMINAL.switch_time, 22)):
         lo, hi = SUPER_HEAVY.thrust_bounds(n)
-        ax.fill_between([t0, t1], lo / 1e6, hi / 1e6, color="#dddddd", alpha=0.7, lw=0)
+        ax.fill_between([t0, t1], lo / 1e6, hi / 1e6, color="#262626", lw=0)
     ax.text(0.2, 31, "13 engines", fontsize=7.5)
     ax.text(NOMINAL.switch_time + 5.0, 7.6, "3 engines", fontsize=7.5)
     ax.set(xlabel="time since ignition (s)", ylabel="thrust (MN)", yscale="log", ylim=(1.5, 40))
@@ -181,7 +187,7 @@ def fig_tradeoff():
         hollow = p in capped
         ax.errorbar(p["prop"], 100 * p["rate"], yerr=[[100 * (p["rate"] - p["lo"])], [100 * (p["hi"] - p["rate"])]],
                     fmt="o", color=COL[p["fam"]], ms=5.5, capsize=2, lw=0.7,
-                    mfc="white" if hollow else COL[p["fam"]], mew=1.5)
+                    mfc="#000000" if hollow else COL[p["fam"]], mew=1.5)
         if hollow:
             continue
         if p["fam"] == "mpc":
@@ -225,9 +231,9 @@ def fig_outcomes(name="mc_random.jsonl"):
             ax.bar(i, frac, bottom=bottom, color=OC_COL[o], width=0.6, label=o if i == 0 else None)
             if frac > 3:
                 ax.text(i, bottom + frac / 2, f"{oc.get(o, 0)}", ha="center", va="center",
-                        color="white" if o != "safe miss" else "#333333", fontsize=7.5)
+                        color="white", fontsize=7.5)
             bottom += frac
-    short = {"mpc": "MPC", "mpc[approach_cap=1]": "MPC +\napproach\ncap", "mpc[eo_reserve=1]": "MPC +\nengine-out\nreserve", "baseline": "Baseline"}
+    short = {"mpc": "MPC", "mpc[approach_cap=1]": "MPC\n+ cap", "mpc[eo_reserve=1]": "MPC\n+ reserve", "baseline": "Baseline"}
     ax.set_xticks(range(len(fams)), [short.get(k, label(k)) for k in fams], fontsize=7.5)
     ax.set(ylabel="flights (%)", ylim=(0, 113), yticks=range(0, 101, 20))
     panel(ax, "a", "outcomes")
@@ -321,8 +327,8 @@ def fig_engineout():
         for d in rows:
             if d["controller"] != key or d["engine_out_time"] is None:
                 continue
-            ax.scatter(d["engine_out_time"], i, s=42, marker="s", color=OC_COL[outcome(d)], edgecolor="white", lw=0.5)
-    ax.axvline(NOMINAL.switch_time, color="k", ls=":", lw=0.8)
+            ax.scatter(d["engine_out_time"], i, s=42, marker="s", color=OC_COL[outcome(d)], edgecolor="#000000", lw=0.5)
+    ax.axvline(NOMINAL.switch_time, color=DIM, ls=":", lw=0.8)
     ax.text(NOMINAL.switch_time + 0.1, len(keys) - 0.45, r"13 $\rightarrow$ 3 engines", fontsize=7.5)
     ax.set_yticks(range(len(keys)), [label(k) for k in keys])
     ax.set(xlabel="time of the engine failure (s after ignition)", ylim=(-0.6, len(keys) - 0.3))
@@ -350,7 +356,7 @@ def fig_basin():
             if d["caught"]:
                 ax.text(d["dx"], d["dz"], f"{d['propellant_left'] / 1e3:.1f}", ha="center", va="center", fontsize=5,
                         color="white")
-        ax.add_patch(mpatches.Rectangle((-18, -22.5), 36, 45, fill=False, ec="black", lw=1.2))   # nominal ignition point
+        ax.add_patch(mpatches.Rectangle((-18, -22.5), 36, 45, fill=False, ec="white", lw=1.2))   # nominal ignition point
         ax.set(xlim=(-220, 220), ylim=(-325, 325), xlabel="ignition shift towards the tower (m)")
         panel(ax, "ab"[list(keys).index(key)], f"{label(key)}: {sum(d['caught'] for d in rs)}/{len(rs)} caught")
         ax.grid(False)

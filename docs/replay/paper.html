@@ -1,4 +1,6 @@
-  <h2 class="sec" id="sec-intro"><span class="num">1</span>Introduction</h2>
+  <section class="row" id="sec-intro" aria-labelledby="sec-intro-h">
+    <div class="lab"><h2 id="sec-intro-h">Introduction</h2><span class="no">01</span></div>
+    <div class="body">
   <p>Super Heavy boosters return to the launch site and are caught by a pair of arms on the
     launch tower instead of landing on legs. The last seconds of the landing burn are
     therefore a precision-guidance problem with unusual structure: the target is a point in the
@@ -27,8 +29,12 @@
     <li>Seven failure mechanisms found by tracing individual closed-loop flights
       (<a href="#sec-mech">&sect;6</a>).</li>
   </ul>
+    </div>
+  </section>
 
-  <h2 class="sec" id="sec-setup"><span class="num">2</span>Problem setup</h2>
+  <section class="row" id="sec-setup" aria-labelledby="sec-setup-h">
+    <div class="lab"><h2 id="sec-setup-h">Problem setup</h2><span class="no">02</span></div>
+    <div class="body">
   <p>The frame has <em>x</em> pointing from offshore towards the tower and <em>z</em> up. The
     landing burn begins 1,250&nbsp;m above the ground, 280&nbsp;m offshore, falling at
     270&nbsp;m/s. Vehicle and scenario parameters are public estimates
@@ -63,8 +69,12 @@
     would sit on the floor with no authority to correct downwards. Both controllers therefore
     hand over at the terminal gate to the same law, a constant 1&nbsp;m/s&sup2; deceleration
     from 5 to 1&nbsp;m/s, which keeps thrust about 10% above the floor.</p>
+    </div>
+  </section>
 
-  <h2 class="sec" id="sec-method"><span class="num">3</span>Guidance</h2>
+  <section class="row" id="sec-method" aria-labelledby="sec-method-h">
+    <div class="lab"><h2 id="sec-method-h">Guidance</h2><span class="no">03</span></div>
+    <div class="body">
   <h3 id="sec-mpc">3.1&ensp;Convex model-predictive control</h3>
   <p>Following <a class="cite" href="#ref-1">[1]</a>, <a class="cite" href="#ref-2">[2]</a>,
     with \(\mathbf u = \mathbf T/m\), slack \(\sigma = \Gamma/m\) and \(z = \ln m\), the
@@ -153,8 +163,12 @@
       </tbody>
     </table>
   </div>
+    </div>
+  </section>
 
-  <h2 class="sec" id="sec-exp"><span class="num">4</span>Experimental setup</h2>
+  <section class="row" id="sec-exp" aria-labelledby="sec-exp-h">
+    <div class="lab"><h2 id="sec-exp-h">Experimental setup</h2><span class="no">04</span></div>
+    <div class="body">
   <p>The simulator integrates a point mass with RK4 at 50&nbsp;Hz; the thrust direction stands in
     for attitude. Drag uses a crossflow model: vertical flow on the 64&nbsp;m&sup2; base and
     horizontal flow on the 639&nbsp;m&sup2; side. Monte Carlo dispersions are listed in
@@ -183,8 +197,12 @@
     (seed 2026), a sweep of engine-failure times, a crosswind sweep, a grid of ignition points
     and a propellant study. Every controller flew the same flights in every campaign.
     Intervals are 95% Wilson score intervals <a class="cite" href="#ref-6">[6]</a>.</p>
+    </div>
+  </section>
 
-  <h2 class="sec" id="sec-results"><span class="num">5</span>Results</h2>
+  <section class="row" id="sec-results" aria-labelledby="sec-results-h">
+    <div class="lab"><h2 id="sec-results-h">Results</h2><span class="no">05</span></div>
+    <div class="body">
   <h3 id="sec-nominal">5.1&ensp;Nominal flight</h3>
   <p>In calm air both controllers catch the booster (<a href="#fig-traj">Figure&nbsp;2</a>). The MPC
     arrives 1&nbsp;cm from the catch point with 5.5&nbsp;t of propellant after 17.1&nbsp;s; the
@@ -256,7 +274,7 @@
     1&nbsp;t (<a href="#sec-cost">&sect;5.7</a>).</p>
   <figure class="wide" id="fig-outcomes">
     <img src="img:outcomes.png" alt="Three panels: stacked outcome bars per controller, the reasons for misses, and histograms of propellant remaining.">
-    <figcaption><b>Figure 4.</b> Dispersed Monte Carlo, 300 flights per controller. (a) Outcomes.
+    <figcaption><b>Figure 4.</b> Dispersed Monte Carlo, 300 flights per controller. (a) Outcomes (cap: approach cap; reserve: engine-out reserve).
       (b) The reason recorded for each miss. (c) Propellant remaining in caught flights.</figcaption>
   </figure>
   <figure id="fig-precision">
@@ -356,8 +374,12 @@
     <figcaption><b>Figure 9.</b> Catch rate against landing propellant, with (solid) and without
       (dashed) an engine failure; 20 flights per point, shading shows 95% intervals.</figcaption>
   </figure>
+    </div>
+  </section>
 
-  <h2 class="sec" id="sec-mech"><span class="num">6</span>Failure mechanisms found in closed loop</h2>
+  <section class="row" id="sec-mech" aria-labelledby="sec-mech-h">
+    <div class="lab"><h2 id="sec-mech-h">Failure mechanisms found in closed loop</h2><span class="no">06</span></div>
+    <div class="body">
   <p>Each of the following was a failure in an earlier version, found by tracing individual
     flights. They are properties of the problem rather than incidental bugs, and they are likely
     the most transferable part of the study.</p>
@@ -390,8 +412,12 @@
       phase it does not plan, the terminal descent, or it will succeed on paper and run dry over
       the arms.</li>
   </ol>
+    </div>
+  </section>
 
-  <h2 class="sec" id="sec-limits"><span class="num">7</span>Limitations</h2>
+  <section class="row" id="sec-limits" aria-labelledby="sec-limits-h">
+    <div class="lab"><h2 id="sec-limits-h">Limitations</h2><span class="no">07</span></div>
+    <div class="body">
   <ul>
     <li><b>Point mass.</b> The thrust direction stands in for attitude: there are no rotational
       dynamics, gimbal limits, grid fins, slosh, flex or aerodynamic moments. The tower-strike check
@@ -411,8 +437,12 @@
     <li><b>Sample sizes.</b> 40 flights per tuning setting and 12 per wind speed; intervals are wide
       and are reported.</li>
   </ul>
+    </div>
+  </section>
 
-  <h2 class="sec" id="sec-concl"><span class="num">8</span>Conclusion</h2>
+  <section class="row" id="sec-concl" aria-labelledby="sec-concl-h">
+    <div class="lab"><h2 id="sec-concl-h">Conclusion</h2><span class="no">08</span></div>
+    <div class="body">
   <p>In this model, convex fuel-optimal guidance outperforms a tuned braking heuristic on every
     nominal measure of a tower catch: catch rate, precision, propellant margin, crosswind tolerance
     and capture basin. The property that saves propellant, braking late, also leaves less room to
@@ -420,8 +450,12 @@
     cost in catch rate. Single-engine-out tolerance is available as one additional convex constraint
     plus about 5&nbsp;t of landing propellant. The throttle floor, rather than the guidance law,
     shapes the final seconds of the catch.</p>
+    </div>
+  </section>
 
-  <h2 class="sec" id="sec-refs">References</h2>
+  <section class="row" id="sec-refs" aria-labelledby="sec-refs-h">
+    <div class="lab"><h2 id="sec-refs-h">References</h2></div>
+    <div class="body">
   <ol class="refs">
     <li id="ref-1">B. A&ccedil;&#305;kme&#351;e and S. R. Ploen. Convex programming approach to powered descent guidance for Mars landing. <em>Journal of Guidance, Control, and Dynamics</em>, 30(5), 2007.</li>
     <li id="ref-2">B. A&ccedil;&#305;kme&#351;e, J. M. Carson III and L. Blackmore. Lossless convexification of nonconvex control bound and pointing constraints of the soft landing optimal control problem. <em>IEEE Transactions on Control Systems Technology</em>, 21(6), 2013.</li>
@@ -431,8 +465,12 @@
     <li id="ref-6">E. B. Wilson. Probable inference, the law of succession, and statistical inference. <em>Journal of the American Statistical Association</em>, 22(158), 1927.</li>
     <li id="ref-7">Wikipedia, &ldquo;SpaceX Raptor&rdquo; and &ldquo;SpaceX Super Heavy&rdquo;, accessed 2026. Public vehicle figures.</li>
   </ol>
+    </div>
+  </section>
 
-  <h2 class="sec" id="app-repro"><span class="num">A</span>Reproducibility</h2>
+  <section class="row" id="app-repro" aria-labelledby="app-repro-h">
+    <div class="lab"><h2 id="app-repro-h">Reproducibility</h2><span class="no">Appendix A</span></div>
+    <div class="body">
   <p>All results come from the code accompanying this report. The guidance tests take about 45&nbsp;s;
     the full evaluation takes about 1.5&nbsp;h on four laptop cores.</p>
 <pre><code>pip install numpy scipy cvxpy clarabel matplotlib pytest
@@ -442,3 +480,5 @@ python scripts/summarize.py results/mc_random.jsonl
 python scripts/validate_guidance.py              # Table 2
 python scripts/make_figures.py                   # Figures 2-9
 python scripts/export_replay.py &amp;&amp; python scripts/build_replay.py   # this page</code></pre>
+    </div>
+  </section>
