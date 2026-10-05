@@ -94,6 +94,18 @@ button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2
   pointer-events: none; white-space: nowrap; box-shadow: 0 8px 24px rgba(0,0,0,.35) }
 .toast.show { opacity: 1; transform: translate(-50%, 0) }
 .toast.ok { background: rgba(21,128,61,.94) } .toast.miss { background: rgba(75,85,99,.94) } .toast.bad { background: rgba(200,30,30,.94) }
+.pad { position: absolute; z-index: 2; right: 14px; bottom: 84px; display: grid; grid-template-columns: repeat(3, 30px);
+  grid-template-rows: repeat(3, 30px) 6px 30px; gap: 3px }
+.pad button { width: 30px; height: 30px; padding: 0; border-radius: 8px; border: 1px solid rgba(255,255,255,.16); background: rgba(8,12,18,.6);
+  color: #eef2f7; display: grid; place-items: center; cursor: pointer; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  touch-action: none; user-select: none; -webkit-user-select: none }
+.pad button:hover { background: rgba(34,42,54,.8) }
+.pad button:active { background: rgba(244,246,249,.9); color: #0d1117 }
+.pad svg { width: 14px; height: 14px; pointer-events: none }
+.pad .up { grid-column: 2; grid-row: 1 } .pad .left { grid-column: 1; grid-row: 2 } .pad .reset { grid-column: 2; grid-row: 2 }
+.pad .right { grid-column: 3; grid-row: 2 } .pad .down { grid-column: 2; grid-row: 3 }
+.pad .zin { grid-column: 1; grid-row: 5 } .pad .zout { grid-column: 3; grid-row: 5 }
+@media (pointer: coarse) { .pad { display: none } }
 .hint { position: absolute; z-index: 2; left: 50%; top: 58%; transform: translateX(-50%); font: 600 12px var(--body); color: #fff; white-space: nowrap;
   padding: 6px 12px; border-radius: 999px; background: rgba(8,12,18,.55); pointer-events: none; transition: opacity .6s }
 .bar { position: absolute; z-index: 2; left: 0; right: 0; bottom: 0; padding: 34px 16px 13px; display: flex; align-items: center; gap: 12px;
@@ -200,14 +212,24 @@ footer p { margin: 0 0 6px }
       </div>
       <div class="seg" id="cams" role="group" aria-label="Camera">
         <button data-cam="auto" aria-pressed="true" title="Cuts between the best shots automatically">Auto</button>
-        <button data-cam="chase" aria-pressed="false" title="Follow the selected booster">Chase</button>
+        <button data-cam="follow" aria-pressed="false" title="Track the watched booster; drag and scroll to orbit and zoom around it">Follow</button>
         <button data-cam="tower" aria-pressed="false" title="Close-up of the tower's arms">Tower</button>
         <button data-cam="wide" aria-pressed="false" title="The whole flight from far away">Wide</button>
+        <button data-cam="free" aria-pressed="false" title="Keep the camera where you put it">Free</button>
       </div>
     </div>
     <div id="tags"></div>
     <button class="bigplay" id="bigplay" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>Play flight</button>
-    <div class="hint" id="hint">Drag to orbit · scroll to zoom</div>
+    <div class="pad" id="pad" role="group" aria-label="Move the view">
+      <button class="up" data-move="up" title="Move view up (W or ↑)" aria-label="Move view up"><svg viewBox="0 0 14 14"><path d="M7 3l4.5 6h-9z" fill="currentColor"/></svg></button>
+      <button class="left" data-move="left" title="Move view left (A or ←)" aria-label="Move view left"><svg viewBox="0 0 14 14"><path d="M3 7l6-4.5v9z" fill="currentColor"/></svg></button>
+      <button class="reset" id="reset-view" title="Reset the view (R)" aria-label="Reset the view"><svg viewBox="0 0 14 14"><path d="M7 2.2a4.8 4.8 0 1 0 4.6 6.3h-1.6A3.3 3.3 0 1 1 7 3.7V6l3-3-3-3z" fill="currentColor"/></svg></button>
+      <button class="right" data-move="right" title="Move view right (D or →)" aria-label="Move view right"><svg viewBox="0 0 14 14"><path d="M11 7l-6 4.5v-9z" fill="currentColor"/></svg></button>
+      <button class="down" data-move="down" title="Move view down (S or ↓)" aria-label="Move view down"><svg viewBox="0 0 14 14"><path d="M7 11L2.5 5h9z" fill="currentColor"/></svg></button>
+      <button class="zin" data-move="in" title="Zoom in (Q or +)" aria-label="Zoom in"><svg viewBox="0 0 14 14"><path d="M6 2h2v4h4v2H8v4H6V8H2V6h4z" fill="currentColor"/></svg></button>
+      <button class="zout" data-move="out" title="Zoom out (E or −)" aria-label="Zoom out"><svg viewBox="0 0 14 14"><path d="M2 6h10v2H2z" fill="currentColor"/></svg></button>
+    </div>
+    <div class="hint" id="hint">Drag to rotate · right-drag or arrow keys to move · scroll to zoom · double-click to center</div>
     <div class="toast" id="toast"></div>
     <div class="bar">
       <button class="play" id="play" aria-label="Play" title="Play / pause (space)">
@@ -215,7 +237,7 @@ footer p { margin: 0 0 6px }
       </button>
       <span class="time" id="clock">T+0.0 s</span>
       <div class="track">
-        <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Replay time" title="Drag to scrub (arrow keys seek)">
+        <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Replay time" title="Drag to scrub (comma and period keys step one second)">
         <div class="marks" id="marks"></div>
       </div>
       <div class="seg" id="speeds" role="group" aria-label="Playback speed">
@@ -343,8 +365,13 @@ footer p { margin: 0 0 6px }
   const camera = new THREE.PerspectiveCamera(40, 16 / 9, 0.8, 40000);
   const controls = new THREE.OrbitControls(camera, canvas);
   controls.enableDamping = true; controls.dampingFactor = 0.08; controls.maxPolarAngle = Math.PI * 0.495;
-  controls.minDistance = 8; controls.maxDistance = 6000;
-  controls.addEventListener("start", () => { setCam("free"); hideHint(); });
+  controls.minDistance = 4; controls.maxDistance = 14000;
+  controls.screenSpacePanning = true; controls.rotateSpeed = 0.8; controls.panSpeed = 1.0;
+  controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
+  controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
+  // any manual camera move leaves the automatic shots (Follow keeps tracking, with your offset)
+  function userMoved() { if (camMode !== "follow" && camMode !== "free") setCam("free"); hideHint(); }
+  controls.addEventListener("start", () => userMoved());
 
   const rtOpts = { type: HDR ? THREE.HalfFloatType : THREE.UnsignedByteType, format: THREE.RGBAFormat,
     minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter };
@@ -969,7 +996,11 @@ footer p { margin: 0 0 6px }
         <div class="fuel"><b data-f="fuel"></b></div>
         <div class="more" data-f="more"></div>
         <div class="result" data-f="result">In flight.</div>`;
-      const pick = () => { focusKey = k; if (camMode === "free" || camMode === "wide") setCam("chase"); markFocus(); lastUI = -1; };
+      const pick = () => {
+        focusKey = k;
+        if (camMode === "follow") reframe = true; else if (camMode === "free" || camMode === "wide") setCam("follow");
+        markFocus(); lastUI = -1;
+      };
       el.addEventListener("click", pick);
       el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
       box.appendChild(el);
@@ -1044,8 +1075,10 @@ footer p { margin: 0 0 6px }
   }
 
   // ================================================================== cameras
-  let snap = true;
+  let snap = true, reframe = true;
+  const lastFollow = new THREE.Vector3();
   function setCam(mode, force) {
+    if (mode === "follow" && (camMode !== "follow" || force)) reframe = true;
     camMode = mode;
     document.querySelectorAll("#cams button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.cam === mode ? "true" : "false"));
     if (force) snap = true;
@@ -1070,19 +1103,98 @@ footer p { margin: 0 0 6px }
       return [pos, p.clone().add(new THREE.Vector3(0, -10, 0))];
     };
     if (crashed) return [p.clone().add(new THREE.Vector3(-160, 70, -190)), p.clone().add(new THREE.Vector3(0, 10, 0))];
-    if (camMode === "chase") return chase();
+    if (camMode === "follow") return chase();
     if (h > 430) return chase();
     if (h > 135 || run.outcome !== "caught" && s.mode === "divert") return [WIDE_TOWER.clone(), p.clone().lerp(new THREE.Vector3(0, 90, 0), 0.2)];
     return [ARMS_POS.clone(), ARMS_TGT.clone().lerp(p, 0.35)];
+  }
+
+  // ================================================================== free camera: move, zoom to cursor, aim
+  const stageEl = document.getElementById("stage");
+  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+  const pickables = [];
+  const shown = (o) => { for (; o; o = o.parent) if (!o.visible) return false; return true; };
+  function keepAboveGround() {
+    const lift = 2.5 - camera.position.y;
+    if (lift > 0) { camera.position.y += lift; controls.target.y += lift; }
+  }
+  // the point under the cursor: tower, boosters, mount or the ground (else along the view ray)
+  function pointAt(clientX, clientY) {
+    const r = canvas.getBoundingClientRect();
+    ndc.set((clientX - r.left) / r.width * 2 - 1, -(clientY - r.top) / r.height * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    let best = null;
+    const hit = ray.intersectObjects(pickables, false).find((h) => shown(h.object));
+    if (hit) best = hit.point.clone();
+    const g = ray.ray.intersectPlane(groundPlane, new THREE.Vector3());
+    if (g && (!best || g.distanceTo(camera.position) < best.distanceTo(camera.position))) best = g;
+    if (!best || best.distanceTo(camera.position) > 18000) best = ray.ray.at(Math.max(60, camera.position.distanceTo(controls.target)), new THREE.Vector3());
+    return best;
+  }
+  function zoomAbout(P, factor) {
+    const d = Math.max(camera.position.distanceTo(P), 1e-3);
+    const f = Math.min(Math.max(factor, 4 / d), 14000 / d);
+    camera.position.sub(P).multiplyScalar(f).add(P);
+    controls.target.sub(P).multiplyScalar(f).add(P);
+    keepAboveGround();
+  }
+  function panBy(fx, fy) {     // fractions of the viewing distance, in screen directions
+    camera.updateMatrixWorld();
+    const dist = camera.position.distanceTo(controls.target);
+    const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
+    const upv = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1);
+    const off = right.multiplyScalar(fx * dist).add(upv.multiplyScalar(fy * dist));
+    camera.position.add(off); controls.target.add(off);
+    keepAboveGround();
+  }
+  // scroll / trackpad: zoom towards whatever is under the cursor (around the booster in Follow)
+  stageEl.addEventListener("wheel", (e) => {
+    if (e.target !== canvas) return;
+    e.preventDefault(); e.stopPropagation();
+    const dy = Math.max(-200, Math.min(200, e.deltaY * (e.deltaMode === 1 ? 33 : 1)));
+    const P = camMode === "follow" ? controls.target.clone() : pointAt(e.clientX, e.clientY);
+    zoomAbout(P, Math.exp(dy * 0.0016));
+    userMoved();
+  }, { capture: true, passive: false });
+  // double-click: rotate around that spot from now on
+  let aim = null;
+  canvas.addEventListener("dblclick", (e) => {
+    aim = { from: controls.target.clone(), to: pointAt(e.clientX, e.clientY), k: 0 };
+    userMoved();
+  });
+  // held keys and pad buttons: move and zoom smoothly while pressed
+  const held = new Set();
+  const KEYMOVE = { ArrowUp: "up", KeyW: "up", ArrowDown: "down", KeyS: "down", ArrowLeft: "left", KeyA: "left",
+    ArrowRight: "right", KeyD: "right", KeyQ: "in", Equal: "in", NumpadAdd: "in", KeyE: "out", Minus: "out", NumpadSubtract: "out" };
+  document.querySelectorAll("#pad [data-move]").forEach((b) => {
+    const dir = b.dataset.move;
+    const stop = () => held.delete(dir);
+    b.addEventListener("pointerdown", (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); held.add(dir); });
+    b.addEventListener("pointerup", stop); b.addEventListener("pointercancel", stop); b.addEventListener("lostpointercapture", stop);
+  });
+  document.getElementById("reset-view").addEventListener("click", () => setCam("auto", true));
+  function applyHeld(dt) {
+    if (aim) {
+      aim.k = Math.min(1, aim.k + dt / 0.35);
+      controls.target.copy(aim.from).lerp(aim.to, aim.k * aim.k * (3 - 2 * aim.k));
+      if (aim.k >= 1) aim = null;
+    }
+    if (!held.size) return;
+    const sp = 0.85 * dt;
+    const fx = (held.has("right") ? 1 : 0) - (held.has("left") ? 1 : 0), fy = (held.has("up") ? 1 : 0) - (held.has("down") ? 1 : 0);
+    if (fx || fy) panBy(fx * sp, fy * sp);
+    const fz = (held.has("out") ? 1 : 0) - (held.has("in") ? 1 : 0);
+    if (fz) zoomAbout(controls.target.clone(), Math.exp(fz * 1.5 * dt));
+    userMoved();
   }
 
   // ================================================================== playback controls
   const playBtn = document.getElementById("play"), playIcon = document.getElementById("play-icon"), bigPlay = document.getElementById("bigplay");
   const scrub = document.getElementById("scrub"), clock = document.getElementById("clock"), hint = document.getElementById("hint");
   let hintShown = true;
-  if (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) hint.textContent = "Drag to orbit · pinch to zoom";
+  if (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) hint.textContent = "Drag to rotate · two fingers to move and zoom";
   function hideHint() { if (hintShown) { hint.style.opacity = "0"; hintShown = false; } }
-  setTimeout(hideHint, 6000);
+  setTimeout(hideHint, 9000);
   function setPlaying(on) {
     playing = on;
     playIcon.innerHTML = on ? '<path d="M4 2.5h3v11H4zM9 2.5h3v11H9z" fill="currentColor"/>' : '<path d="M4 2.5v11l9-5.5z" fill="currentColor"/>';
@@ -1102,10 +1214,15 @@ footer p { margin: 0 0 6px }
     const tg = e.target;
     if (tg && ((tg.tagName === "INPUT" && tg.type !== "range") || tg.tagName === "TEXTAREA" || tg.isContentEditable)) return;
     if (tg && tg.classList && tg.classList.contains("card")) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.code === "Space") { e.preventDefault(); togglePlay(); }
-    else if (e.code === "ArrowRight") { t = Math.min(tEnd, t + 1); snap = true; bigPlay.hidden = true; }
-    else if (e.code === "ArrowLeft") { t = Math.max(0, t - 1); snap = true; }
+    else if (e.code === "Period") { t = Math.min(tEnd, t + 1); snap = true; bigPlay.hidden = true; }
+    else if (e.code === "Comma") { t = Math.max(0, t - 1); snap = true; }
+    else if (e.code === "KeyR") { setCam("auto", true); }
+    else if (KEYMOVE[e.code]) { e.preventDefault(); held.add(KEYMOVE[e.code]); }
   });
+  window.addEventListener("keyup", (e) => { if (KEYMOVE[e.code]) held.delete(KEYMOVE[e.code]); });
+  window.addEventListener("blur", () => held.clear());
 
   // ================================================================== per-frame scene update
   let lastPlanT0 = null, lastUI = -1, clockTime = 0, toastKey = "";
@@ -1169,7 +1286,15 @@ footer p { margin: 0 0 6px }
     } else planLine.visible = false;
     smoke.flush(); fire.flush();
     seaMat.uniforms.uTime.value = clockTime; cloudMat.uniforms.uTime.value = clockTime;
-    if (camMode !== "free") {
+    if (camMode === "follow") {
+      // track the booster: carry the camera along with it, keeping whatever angle and
+      // distance the viewer has set by dragging and zooming
+      const run = fl.runs[focusKey], pNow = V(sample(run, Math.min(t, endT(run))).r);
+      if (reframe) { const [pos, tgt] = shot(fl); camera.position.copy(pos); controls.target.copy(tgt); reframe = false; }
+      else { const d = pNow.clone().sub(lastFollow); camera.position.add(d); controls.target.add(d); }
+      lastFollow.copy(pNow);
+      keepAboveGround();
+    } else if (camMode !== "free") {
       const [pos, tgt] = shot(fl);
       if (snap) { camera.position.copy(pos); controls.target.copy(tgt); snap = false; }
       else { camera.position.lerp(pos, 1 - Math.exp(-dt * 1.9)); controls.target.lerp(tgt, 1 - Math.exp(-dt * 3.2)); }
@@ -1355,6 +1480,7 @@ footer p { margin: 0 0 6px }
     const dt = Math.min(0.1, (now - last) / 1000); last = now;
     clockTime += REDUCED ? dt * 0.25 : dt;
     if (playing) { t += dt * speed; if (t >= tEnd) { t = tEnd; setPlaying(false); } }
+    applyHeld(dt);
     updateScene(dt);
     uiTimer += dt;
     if (uiTimer > 0.066 || (!playing && lastUI !== t)) { updateUI(); uiTimer = 0; lastUI = t; }
@@ -1362,6 +1488,15 @@ footer p { margin: 0 0 6px }
     composer.render(dt);
     requestAnimationFrame(frame);
   }
+  {
+    const NOPICK = new Set([land, sea, clouds, beach, road, zone, gateRing, pad]);
+    scene.traverse((o) => {
+      if (o.isMesh && !NOPICK.has(o) && !o.isLineSegments2 && !(o.material && o.material.isShaderMaterial) && !(o.isInstancedMesh && o.count > 1000))
+        pickables.push(o);
+    });
+  }
+  // read-only handle for automated checks of the camera controls
+  window.__replay = { camera, controls, get mode() { return camMode; }, get t() { return t; } };
   applyTOD("sunset");
   selectFlight(0);
   resize();
