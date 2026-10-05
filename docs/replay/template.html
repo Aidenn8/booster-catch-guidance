@@ -74,6 +74,30 @@ figcaption { font-size: 15px; line-height: 1.55; color: var(--muted); margin-top
 figcaption b, caption b { color: var(--ink); font-weight: 500 }
 .tbl { margin: 28px 0 30px }
 .tscroll, .fscroll { overflow-x: auto; -webkit-overflow-scrolling: touch }
+svg.dg { display: block; width: 100%; height: auto; font-family: var(--sans); overflow: visible }
+.dg .t1 { fill: #ffffff; font-size: 14px; font-weight: 500 }
+.dg .t2 { fill: #a8a8a8; font-size: 12.5px }
+.dg .t3 { fill: #707070; font-size: 12px }
+.dg .box { fill: #0b0b0b; stroke: #3a3a3a; stroke-width: 1.2 }
+.dg .box.key { fill: #151515; stroke: #f0f0f0; stroke-width: 1.5 }
+.dg .ln { stroke: #8e8e8e; stroke-width: 1.3 }
+.dg .gl { stroke: #4a4a4a; stroke-width: 1 }
+.dg .sb { stroke: #8e8e8e; stroke-width: 1.2 }
+.dg .ref { stroke: #6e6e6e; stroke-width: 1; stroke-dasharray: 3 3 }
+.dg .off { stroke: #7a7a7a; stroke-width: 1.2; stroke-dasharray: 1.5 4 }
+.dg .tower { fill: #2b2b2b }
+.dg .mount { fill: #1c1c1c }
+.dg .booster { fill: none; stroke: #5e5e5e; stroke-width: 1.2; stroke-dasharray: 4 3 }
+.dg .arms { stroke: #d0d0d0; stroke-width: 3 }
+.dg .traj { stroke: #56B4E9; stroke-width: 2.2; fill: none; stroke-linecap: round }
+.dg .td { stroke: #d8d8d8; stroke-width: 1.4; stroke-dasharray: 3 2.5 }
+.dg .mk { fill: #ffffff }
+.dg .mkx line { stroke: #ffffff; stroke-width: 2; stroke-linecap: round }
+.dg .co circle { fill: #000000; stroke: #f0f0f0; stroke-width: 1.2 }
+.dg .co text { fill: #ffffff; font-size: 11.5px; font-weight: 500 }
+.dg-key { columns: 2; column-gap: 36px; font-size: 14px; line-height: 1.5; color: var(--ink2); margin: 18px 0 0; padding-left: 1.5em }
+.dg-key li { break-inside: avoid; margin-bottom: 7px; padding-left: 0.2em }
+.dg-key li::marker { color: var(--ink); font-weight: 500 }
 .tcap { font-size: 15px; color: var(--ink); margin: 0 0 12px; line-height: 1.5 }
 .tcap b { font-weight: 500 }
 .tcap span { color: var(--muted); margin-left: 6px }
@@ -117,7 +141,7 @@ ol.refs li::marker { content: "[" counter(list-item) "]\2002"; color: var(--mute
 .scn-desc { font-size: 15px; color: var(--muted); margin: 14px 0 0 }
 .stage { position: relative; overflow: hidden; aspect-ratio: 16 / 9; max-height: 76vh; width: 100%; background: #07090c; border-radius: 6px }
 #view { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none }
-.ov { position: absolute; z-index: 2; left: 16px; top: 13px; right: 16px; pointer-events: none; color: #fff;
+.ov { position: absolute; z-index: 2; left: 16px; top: 13px; right: 150px; pointer-events: none; color: #fff;
   font: 400 13px/1.5 var(--sans); text-shadow: 0 1px 3px rgba(0,0,0,.85) }
 .ov .phase { font-weight: 500; font-size: 15px; letter-spacing: -0.01em }
 .ov .phase .t { font: 400 13px var(--mono); margin-right: 12px; opacity: .85; font-variant-numeric: tabular-nums }
@@ -127,6 +151,14 @@ ol.refs li::marker { content: "[" counter(list-item) "]\2002"; color: var(--mute
 .tag { position: absolute; left: 0; top: 0; z-index: 1; font: 500 11px var(--sans); color: #fff; padding: 1px 7px 1px 6px;
   background: rgba(0,0,0,.55); border-left: 2px solid var(--c); pointer-events: none; white-space: nowrap;
   font-variant-numeric: tabular-nums; will-change: transform }
+.resetbtn { position: absolute; z-index: 3; top: 12px; right: 12px; display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 14px 7px 11px; border-radius: 999px; border: 1px solid rgba(255,255,255,.45); background: rgba(0,0,0,.6);
+  color: #fff; font: 500 13px var(--sans); cursor: pointer; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  transition: opacity .2s, background .2s, border-color .2s }
+.resetbtn svg { width: 13px; height: 13px }
+.resetbtn:hover { background: rgba(0,0,0,.85); border-color: #fff }
+.resetbtn.idle { opacity: .5 }
+.resetbtn.idle:hover { opacity: 1 }
 .bigplay { position: absolute; z-index: 3; left: 50%; top: 50%; transform: translate(-50%, -50%); display: inline-flex; align-items: center;
   gap: 10px; padding: 11px 20px 11px 16px; border: 0; border-radius: 999px; background: #fff; color: #000;
   font: 500 15px var(--sans); cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,.45) }
@@ -211,6 +243,8 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
   table.kv th[scope="row"] { width: 120px }
   .tscroll table.res { min-width: 600px }
   .fscroll img { width: 600px; max-width: none }
+  .fscroll svg.dg { width: 700px }
+  .dg-key { columns: 1 }
   figure.mid .fscroll img { width: 720px }
   .tele th:nth-child(5), .tele td:nth-child(5), .tele th:nth-child(6), .tele td:nth-child(6), .tele .watch { display: none }
   .tele th, .tele td { padding-left: 7px; padding-right: 7px }
@@ -268,6 +302,8 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
           <div class="meta" id="chips"></div>
         </div>
         <div id="tags"></div>
+        <button class="resetbtn idle" id="reset-main" type="button" title="Back to the default camera that follows the booster (R)">
+          <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 2.2a4.8 4.8 0 1 0 4.6 6.3h-1.6A3.3 3.3 0 1 1 7 3.7V6l3-3-3-3z" fill="currentColor"/></svg>Reset view</button>
         <button class="bigplay" id="bigplay" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>Play replay</button>
         <div class="pad" id="pad" role="group" aria-label="Move the view">
           <button class="up" data-move="up" title="Move view up (W or ↑)" aria-label="Move view up"><svg viewBox="0 0 14 14"><path d="M7 3l4.5 6h-9z" fill="currentColor"/></svg></button>
@@ -340,7 +376,7 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
       and the light dashed line ahead of the MPC booster its current plan. The followed booster is drawn solid,
       the others translucent. Drag to rotate, right-drag or use the arrow keys to pan, scroll to zoom and
       double-click to re-centre; <kbd>Space</kbd> plays, <kbd>,</kbd>&thinsp;/&thinsp;<kbd>.</kbd> step one
-      second and <kbd>R</kbd> resets the view. The body's lean is a rendering approximation; see
+      second, and <b>Reset view</b> (or <kbd>R</kbd>) returns to the default camera that follows the booster. The body's lean is a rendering approximation; see
       Limitations.</figcaption>
   </figure>
 
@@ -412,7 +448,7 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
   const gl2 = renderer.capabilities.isWebGL2;
   const HDR = gl2 && (renderer.extensions.has("EXT_color_buffer_float") || renderer.extensions.has("EXT_color_buffer_half_float"));
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(40, 16 / 9, 0.8, 40000);
+  const camera = new THREE.PerspectiveCamera(40, 16 / 9, 0.8, 90000);
   const controls = new THREE.OrbitControls(camera, canvas);
   controls.enableDamping = true; controls.dampingFactor = 0.08; controls.maxPolarAngle = Math.PI * 0.495;
   controls.minDistance = 4; controls.maxDistance = 14000;
@@ -432,6 +468,17 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
   composer.setPixelRatio(DPR);
   composer.addPass(new THREE.RenderPass(scene, camera));
   const bloom = new THREE.UnrealBloomPass(new THREE.Vector2(256, 256), 0.7, 0.5, HDR ? 1.7 : 0.88);
+  {
+    const m = bloom.materialHighPassFilter;
+    // threshold on the true brightness, then clip what is blurred to 1 (as an 8-bit buffer would)
+    const capped = m.fragmentShader.replace(/gl_FragColor = mix\(\s*outputColor,\s*texel,\s*alpha\s*\);/,
+      "gl_FragColor = min( mix( outputColor, texel, alpha ), vec4( 1.0 ) );");
+    if (capped !== m.fragmentShader) { m.fragmentShader = capped; m.needsUpdate = true; }
+    // the bloom's own buffers default to 8 bits; in dark scenes the faint tails of the blur
+    // then show as stepped rectangles once the image is brightened for display
+    if (HDR) for (const rt of [bloom.renderTargetBright, ...bloom.renderTargetsHorizontal, ...bloom.renderTargetsVertical])
+      rt.texture.type = THREE.HalfFloatType;
+  }
   composer.addPass(bloom);
   const finalPass = new THREE.ShaderPass({
     uniforms: { tDiffuse: { value: null }, uExposure: { value: 0.47 }, uTone: { value: HDR ? 1 : 0 } },
@@ -445,6 +492,7 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
       "  float l = dot(c, vec3(0.2126, 0.7152, 0.0722)); c = mix(vec3(l), c, 1.08);",
       "  c = pow(max(c, 0.0), vec3(1.0 / 2.2));",
       "  vec2 q = vUv - 0.5; c *= 1.0 - 0.55 * dot(q, q);",
+      "  c += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0;",   // dither: no banding in dark gradients
       "  gl_FragColor = vec4(c, 1.0);",
       "}"].join("\n")
   });
@@ -530,9 +578,9 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
       x.fillStyle = a > 0 ? `rgba(255,255,255,${a})` : `rgba(0,0,0,${-a})`;
       x.fillRect(p * W / 6 + (r % 2) * W / 12, r * rh, W / 6, rh);
     }
-    x.fillStyle = "rgba(70,72,76,0.3)";
-    for (let r = 0; r <= RINGS; r++) x.fillRect(0, r * rh - 1, W, 1.6);               // circumferential welds
-    x.fillStyle = "rgba(70,72,76,0.12)";
+    x.fillStyle = "rgba(70,72,76,0.17)";
+    for (let r = 0; r <= RINGS; r++) x.fillRect(0, r * rh - 1, W, 1.3);               // circumferential welds
+    x.fillStyle = "rgba(70,72,76,0.06)";
     for (let r = 0; r < RINGS; r++) for (let p = 0; p < 3; p++) x.fillRect(p * W / 3 + (r % 2) * W / 6, r * rh, 1, rh);
     // re-entry soot: dark at the engine end, streaking up the body
     const g = x.createLinearGradient(0, H, 0, H * 0.62);
@@ -548,8 +596,8 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
   const steelRough = canvasTex(256, 1024, (x, W, H) => {
     x.fillStyle = "rgb(100,100,100)"; x.fillRect(0, 0, W, H);
     for (let i = 0; i < 600; i++) { const v = 80 + rnd() * 50; x.fillStyle = `rgb(${v},${v},${v})`; x.fillRect(rnd() * W, 0, 1.5, H); }
-    x.fillStyle = "rgb(190,190,190)"; const rh = H / RINGS;
-    for (let r = 0; r <= RINGS; r++) x.fillRect(0, r * rh - 1.5, W, 3);
+    x.fillStyle = "rgb(150,150,150)"; const rh = H / RINGS;
+    for (let r = 0; r <= RINGS; r++) x.fillRect(0, r * rh - 1, W, 2);
     const g = x.createLinearGradient(0, H, 0, H * 0.65);   // soot is matte
     g.addColorStop(0, "rgb(225,225,225)"); g.addColorStop(1, "rgba(225,225,225,0)");
     x.fillStyle = g; x.fillRect(0, H * 0.65, W, H * 0.35);
@@ -577,16 +625,44 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
     }
   });
   const sandMap = canvasTex(512, 512, (x, W, H) => {
-    x.fillStyle = "#c3ae89"; x.fillRect(0, 0, W, H);
-    for (let i = 0; i < 260; i++) {
-      const r = 20 + rnd() * 70, px = rnd() * W, py = rnd() * H;
-      const g = x.createRadialGradient(px, py, 0, px, py, r);
-      const c = rnd() < 0.4 ? "120,116,82" : (rnd() < 0.5 ? "158,140,108" : "212,197,166");
-      g.addColorStop(0, `rgba(${c},0.14)`); g.addColorStop(1, `rgba(${c},0)`);
-      x.fillStyle = g; x.fillRect(px - r, py - r, 2 * r, 2 * r);
+    x.fillStyle = "#bdae92"; x.fillRect(0, 0, W, H);
+    for (let i = 0; i < 70; i++) {                          // faint ripples
+      const py = rnd() * H; x.fillStyle = `rgba(255,248,232,${0.025 + rnd() * 0.03})`; x.fillRect(0, py, W, 1 + rnd() * 2);
     }
-    for (let i = 0; i < 9000; i++) { const v = rnd() < 0.5 ? 255 : 0; x.fillStyle = `rgba(${v},${v},${v},${rnd() * 0.08})`; x.fillRect(rnd() * W, rnd() * H, 1.5, 1.5); }
-  }, { repeat: [150, 150] });
+    for (let i = 0; i < 14000; i++) { const v = rnd() < 0.5 ? 255 : 0; x.fillStyle = `rgba(${v},${v},${v},${rnd() * 0.07})`; x.fillRect(rnd() * W, rnd() * H, 1.3, 1.3); }
+  }, { repeat: [900, 900] });
+  // large-scale terrain, painted once over 6 km around the site and multiplied into the sand
+  // in the shader: scrub-covered patches, tidal flats with wet margins, dunes behind the beach
+  const MACRO = 6000;
+  const LAGOONS = [[900, -720, 250], [1550, 560, 300], [2450, -480, 380], [720, 980, 190], [3300, 1000, 560], [3900, -1400, 640]];
+  const macroMap = canvasTex(2048, 2048, (x, W, H) => {
+    const px = (wx) => (wx - SHORE_X) / MACRO * W, pz = (wz) => (wz + MACRO / 2) / MACRO * H, pr = (r) => r / MACRO * W;
+    x.fillStyle = "rgb(128,128,128)"; x.fillRect(0, 0, W, H);
+    const blob = (cx, cy, r, rgb, a) => {
+      const g = x.createRadialGradient(cx, cy, 0, cx, cy, r);
+      g.addColorStop(0, `rgba(${rgb},${a})`); g.addColorStop(1, `rgba(${rgb},0)`);
+      x.fillStyle = g; x.fillRect(cx - r, cy - r, 2 * r, 2 * r);
+    };
+    for (let i = 0; i < 1100; i++) blob(rnd() * W, rnd() * H, 30 + rnd() * 170, "74,86,54", 0.3);        // scrub, broad
+    for (let i = 0; i < 3600; i++) blob(rnd() * W, rnd() * H, 5 + rnd() * 28, "62,74,44", 0.34);       // scrub, clumps
+    for (let i = 0; i < 700; i++) blob(rnd() * W, rnd() * H, 20 + rnd() * 120, "158,150,132", 0.18);   // bare, pale sand
+    const dune = x.createLinearGradient(0, 0, px(SHORE_X + 260), 0);                              // dunes behind the beach
+    dune.addColorStop(0, "rgba(168,160,140,0.55)"); dune.addColorStop(1, "rgba(168,160,140,0)");
+    x.fillStyle = dune; x.fillRect(0, 0, px(SHORE_X + 260), H);
+    for (const [lx, lz, lr] of LAGOONS) {                                                       // tidal flats: damp margin, wet centre
+      for (let k = 0; k < 7; k++) {
+        const ox = (rnd() - 0.5) * lr * 1.2, oz = (rnd() - 0.5) * lr * 0.7, rr = lr * (0.55 + rnd() * 0.6);
+        blob(px(lx + ox), pz(lz + oz), pr(rr * 1.8), "96,98,94", 0.32);
+        blob(px(lx + ox), pz(lz + oz), pr(rr * 1.1), "62,72,80", 0.5);
+      }
+    }
+    x.strokeStyle = "rgba(150,142,124,0.2)"; x.lineWidth = 3;                                   // dirt tracks
+    for (let i = 0; i < 9; i++) {
+      x.beginPath(); let cx = rnd() * W, cy = rnd() * H; x.moveTo(cx, cy);
+      for (let k = 0; k < 6; k++) { cx += (rnd() - 0.3) * 260; cy += (rnd() - 0.5) * 260; x.lineTo(cx, cy); }
+      x.stroke();
+    }
+  }, { srgb: false });
   const padMap = canvasTex(1024, 1024, (x, W, H) => {
     x.fillStyle = "#a9a59d"; x.fillRect(0, 0, W, H);
     for (let i = 0; i < 400; i++) { const v = 150 + rnd() * 50; x.fillStyle = `rgba(${v},${v},${v - 6},0.25)`; x.fillRect(rnd() * W, rnd() * H, 40 + rnd() * 60, 40 + rnd() * 60); }
@@ -600,23 +676,48 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
   });
 
   // ================================================================== ground, sea, pad
-  const landGeo = new THREE.PlaneGeometry(40000, 40000, 220, 220);
+  const LAND = 120000;
+  const landGeo = new THREE.PlaneGeometry(LAND, LAND, 240, 240);
   {
     const pos = landGeo.attributes.position, cols = new Float32Array(pos.count * 3);
     const noise = (x, y) => Math.sin(x * 0.0021 + 1.3) * Math.sin(y * 0.0017 - 0.4) + 0.6 * Math.sin(x * 0.0057 + y * 0.0049)
       + 0.35 * Math.sin(x * 0.013 - y * 0.011 + 2.1);
     const sandC = lin(0xffffff), scrub = lin(0xa39a78), pale = lin(0xfff6e6), c = new THREE.Color();
     for (let i = 0; i < pos.count; i++) {
-      const wx = pos.getX(i) + SHORE_X + 20000, wy = pos.getY(i), n = noise(wx, wy);
+      const wx = pos.getX(i) + SHORE_X + LAND / 2, wy = pos.getY(i), n = noise(wx, wy);
       c.copy(sandC).lerp(n > 0 ? scrub : pale, Math.min(1, Math.abs(n) * 0.45));
       c.lerp(lin(0x9c8d72), smooth(70, 0, wx - SHORE_X) * 0.6);
       cols[i * 3] = c.r; cols[i * 3 + 1] = c.g; cols[i * 3 + 2] = c.b;
     }
     landGeo.setAttribute("color", new THREE.BufferAttribute(cols, 3));
   }
-  const land = new THREE.Mesh(landGeo, new THREE.MeshStandardMaterial({ map: sandMap, vertexColors: true, roughness: 0.97, metalness: 0, envMapIntensity: 0.45 }));
-  land.rotation.x = -Math.PI / 2; land.position.set(SHORE_X + 20000, 0, 0); land.receiveShadow = true; scene.add(land);
-  const beach = new THREE.Mesh(new THREE.PlaneGeometry(28, 40000), new THREE.MeshStandardMaterial({ color: lin(0xd9c7a3), roughness: 0.9 }));
+  const landMat = new THREE.MeshStandardMaterial({ map: sandMap, vertexColors: true, roughness: 0.97, metalness: 0, envMapIntensity: 0.45 });
+  landMat.onBeforeCompile = (sh) => {
+    sh.uniforms.uMacro = { value: macroMap };
+    sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWp;")
+      .replace("#include <begin_vertex>", "#include <begin_vertex>\nvWp = (modelMatrix * vec4(transformed, 1.0)).xyz;");
+    sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform sampler2D uMacro; varying vec3 vWp;")
+      .replace("#include <map_fragment>", "#include <map_fragment>\n  vec2 muv = vec2((vWp.x - (" + SHORE_X.toFixed(1) + ")) / " + MACRO.toFixed(1) +
+        ", (vWp.z + " + (MACRO / 2).toFixed(1) + ") / " + MACRO.toFixed(1) + ");\n  diffuseColor.rgb *= texture2D(uMacro, muv).rgb * 2.0;");
+  };
+  const land = new THREE.Mesh(landGeo, landMat);
+  land.rotation.x = -Math.PI / 2; land.position.set(SHORE_X + LAND / 2, 0, 0); land.receiveShadow = true; scene.add(land);
+  // beach: wet, darker sand at the waterline to dry, pale sand at the dunes
+  const beachMap = canvasTex(512, 16, (x, W, H) => {
+    const g = x.createLinearGradient(0, 0, W, 0);
+    g.addColorStop(0, "#8d7c62"); g.addColorStop(0.16, "#a6937396".slice(0, 7)); g.addColorStop(0.3, "#d7c6a3");
+    g.addColorStop(0.75, "#e2d3b2"); g.addColorStop(1, "#cbb993");
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    for (let i = 0; i < 1600; i++) { const v = rnd() < 0.5 ? 255 : 0; x.fillStyle = `rgba(${v},${v},${v},${rnd() * 0.06})`; x.fillRect(rnd() * W, rnd() * H, 1.5, 1.5); }
+  }, { repeat: [1, 6000] });
+  beachMap.wrapS = THREE.ClampToEdgeWrapping;
+  const beachRough = canvasTex(128, 4, (x, W, H) => {
+    const g = x.createLinearGradient(0, 0, W, 0);
+    g.addColorStop(0, "rgb(120,120,120)"); g.addColorStop(0.28, "rgb(235,235,235)"); g.addColorStop(1, "rgb(245,245,245)");
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+  }, { srgb: false, repeat: [1, 6000] });
+  beachRough.wrapS = THREE.ClampToEdgeWrapping;
+  const beach = new THREE.Mesh(new THREE.PlaneGeometry(28, LAND), new THREE.MeshStandardMaterial({ map: beachMap, roughnessMap: beachRough, roughness: 1, envMapIntensity: 0.6 }));
   beach.rotation.x = -Math.PI / 2; beach.position.set(SHORE_X + 10, 0.03, 0); beach.receiveShadow = true; scene.add(beach);
   const seaMat = new THREE.ShaderMaterial({
     uniforms: { uTime: { value: 0 }, uSun: { value: new THREE.Vector3() }, uDeep: { value: new THREE.Color() },
@@ -651,8 +752,8 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
       "  gl_FragColor = vec4(c, 1.0);",
       "}"].join("\n")
   });
-  const sea = new THREE.Mesh(new THREE.PlaneGeometry(40000, 40000, 1, 1), seaMat);
-  sea.rotation.x = -Math.PI / 2; sea.position.set(SHORE_X - 20000 + 2, -0.35, 0); scene.add(sea);
+  const sea = new THREE.Mesh(new THREE.PlaneGeometry(LAND, LAND, 1, 1), seaMat);
+  sea.rotation.x = -Math.PI / 2; sea.position.set(SHORE_X - LAND / 2 + 2, -0.35, 0); scene.add(sea);
 
   const pad = new THREE.Mesh(new THREE.CircleGeometry(80, 72), new THREE.MeshStandardMaterial({ map: padMap, roughness: 0.92 }));
   pad.rotation.x = -Math.PI / 2; pad.position.set(4, 0.06, 0); pad.receiveShadow = true; scene.add(pad);
@@ -740,28 +841,43 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
     }
   }
   {
-    const N = 2600, geo = new THREE.IcosahedronGeometry(1, 0);
-    const shrubs = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ roughness: 1, flatShading: true, envMapIntensity: 0.4 }), N);
-    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), c = new THREE.Color();
-    let n = 0;
-    for (let i = 0; i < N * 3 && n < N; i++) {
-      const r = 140 + Math.pow(rnd(), 0.7) * 2600, a = rnd() * Math.PI * 2;
-      const x = 20 + Math.cos(a) * r, z = Math.sin(a) * r;
-      if (x < SHORE_X + 40 || (Math.abs(z - 30) < 14 && x > 50) || (x > 100 && x < 190 && z > -100 && z < -50) || Math.hypot(x + 16, z - 300) < 80) continue;
-      const sc = 0.8 + rnd() * 2.6;
-      q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), rnd() * 6.3);
-      m.compose(new THREE.Vector3(x, sc * 0.3, z), q, new THREE.Vector3(sc * (1 + rnd() * 0.6), sc * 0.7, sc));
-      shrubs.setMatrixAt(n, m);
-      c.copy(lin(0x5f6440)).lerp(lin(0x8a7f55), rnd()); shrubs.setColorAt(n, c); n++;
+    const N = 9000, geo = new THREE.IcosahedronGeometry(1, 1);
+    {                                                           // lumpy, irregular bush shape
+      const p = geo.attributes.position, v = new THREE.Vector3();
+      for (let i = 0; i < p.count; i++) {
+        v.fromBufferAttribute(p, i);
+        const k = 0.78 + 0.32 * hash(Math.round(v.x * 7) * 13.1 + Math.round(v.y * 7) * 7.7 + Math.round(v.z * 7) * 3.3);
+        p.setXYZ(i, v.x * k, Math.max(v.y * k, -0.25), v.z * k);
+      }
+      geo.computeVertexNormals();
     }
-    shrubs.count = n; scene.add(shrubs);
+    const shrubs = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ roughness: 1, envMapIntensity: 0.35 }), N);
+    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), c = new THREE.Color(), up = new THREE.Vector3(0, 1, 0);
+    const blocked = (x, z) => x < SHORE_X + 45 || (Math.abs(z - 30) < 16 && x > 50) || (x > 100 && x < 190 && z > -100 && z < -50)
+      || Math.hypot(x + 16, z - 300) < 85 || Math.hypot(x - 4, z) < 95 || (x > 190 && x < 580 && z > -70 && z < 150)
+      || LAGOONS.some(([lx, lz, lr]) => Math.hypot((x - lx) / 1.3, (z - lz) / 0.85) < lr * 1.15);
+    let n = 0;
+    for (let k = 0; k < 700 && n < N; k++) {                      // clumps of scrub
+      const r = 130 + Math.pow(rnd(), 0.75) * 2700, a = rnd() * Math.PI * 2;
+      const cx = 20 + Math.cos(a) * r, cz = Math.sin(a) * r, spread = 6 + rnd() * 26, cnt = 4 + Math.floor(rnd() * 16);
+      for (let j = 0; j < cnt && n < N; j++) {
+        const x = cx + (rnd() - 0.5) * 2 * spread, z = cz + (rnd() - 0.5) * 2 * spread;
+        if (blocked(x, z)) continue;
+        const sc = 0.45 + Math.pow(rnd(), 1.8) * 2.0;
+        q.setFromAxisAngle(up, rnd() * 6.3);
+        m.compose(new THREE.Vector3(x, sc * 0.3, z), q, new THREE.Vector3(sc * (1 + rnd() * 0.4), sc * (0.75 + rnd() * 0.25), sc * (1 + rnd() * 0.3)));
+        shrubs.setMatrixAt(n, m);
+        c.copy(lin(0x36402a)).lerp(lin(0x5f5e3c), rnd() * rnd()); shrubs.setColorAt(n, c); n++;
+      }
+    }
+    shrubs.count = n; shrubs.receiveShadow = true; scene.add(shrubs);
   }
   const gateRing = new THREE.Mesh(new THREE.TorusGeometry(3.2, 0.12, 8, 48), new THREE.MeshBasicMaterial({ color: lin(0xffffff), transparent: true, opacity: 0.3, depthWrite: false }));
   gateRing.rotation.x = Math.PI / 2; gateRing.position.copy(V([CP[0], CP[1], CP[2] + GATE_H])); scene.add(gateRing);
 
   // night lighting: floodlights on poles around the pad, lamps and aviation lights on the tower
-  const lampMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 0.92, 0.78).multiplyScalar(9) });
-  const redMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 0.08, 0.05).multiplyScalar(14) });
+  const lampMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 0.92, 0.78).multiplyScalar(4.5) });
+  const redMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 0.08, 0.05).multiplyScalar(7) });
   const nightGroup = new THREE.Group(); scene.add(nightGroup);
   const floods = [];
   for (const [x, z] of [[-60, -55], [-62, 50], [55, -62], [62, 58]]) {
@@ -821,8 +937,9 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
     add(new THREE.Mesh(new THREE.CylinderGeometry(R + 0.04, R + 0.04, 1.8, 56, 1, true),
       new THREE.MeshStandardMaterial({ map: ventMap, metalness: 0.5, roughness: 0.6 })), L / 2 - 1.5);
     const dome = new THREE.Mesh(new THREE.SphereGeometry(R, 40, 12, 0, Math.PI * 2, 0, Math.PI / 2), steel); dome.scale.y = 0.18; add(dome, L / 2 - 0.6);
-    add(new THREE.Mesh(new THREE.CylinderGeometry(R + 0.05, R + 0.05, 1.2, 56, 1, true),
-      new THREE.MeshStandardMaterial({ color: lin(HEX[key]), emissive: lin(HEX[key]), emissiveIntensity: 0.35, roughness: 0.5 })), L / 2 - 9.5);
+    // slim painted stripe in the controller's colour, to tell the boosters apart
+    add(new THREE.Mesh(new THREE.CylinderGeometry(R + 0.03, R + 0.03, 0.55, 56, 1, true),
+      new THREE.MeshStandardMaterial({ color: lin(HEX[key]).multiplyScalar(0.8), emissive: lin(HEX[key]), emissiveIntensity: 0.08, roughness: 0.55 })), L / 2 - 9.5);
     const finMat = new THREE.MeshStandardMaterial({ color: lin(0x34373b), map: gridFin, alphaTest: 0.5, side: THREE.DoubleSide, metalness: 0.6, roughness: 0.55 });
     mats.push(finMat);
     for (let i = 0; i < 4; i++) {
@@ -906,13 +1023,13 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
   // ================================================================== time of day
   const TOD = {
     sunset: { elev: 9, az: 108, turb: 2.2, ray: 2.7, mie: 0.0035, sunCol: 0xffd9b4, sunI: 3.0, hemiSky: 0xb4c3d6, hemiGround: 0x575048, hemiI: 0.3,
-      exposure: 0.47, fog: 0xc6c0b9, fogD: 0.00003, deep: 0x114d6e, seaSky: 0x7aa3cc, glint: 0xffc58a, cloudLit: 0xffd8bc, cloudAmb: 0x8a8f9c,
+      exposure: 0.47, fog: 0xc6c0b9, fogD: 0.00007, deep: 0x114d6e, seaSky: 0x7aa3cc, glint: 0xffc58a, cloudLit: 0xffd8bc, cloudAmb: 0x8a8f9c,
       cover: 0.54, cloudA: 0.85, stars: 0, night: 0, smokeDim: 1, foam: 0xd8d6d0 },
     day: { elev: 52, az: 150, turb: 2.0, ray: 1.4, mie: 0.003, sunCol: 0xfff7ec, sunI: 3.3, hemiSky: 0xbfd0e6, hemiGround: 0x6a604f, hemiI: 0.42,
-      exposure: 0.36, fog: 0xc9d6e4, fogD: 0.000028, deep: 0x0f5a80, seaSky: 0x6aa2d6, glint: 0xffffff, cloudLit: 0xffffff, cloudAmb: 0xaab6c6,
+      exposure: 0.36, fog: 0xc9d6e4, fogD: 0.000062, deep: 0x0f5a80, seaSky: 0x6aa2d6, glint: 0xffffff, cloudLit: 0xffffff, cloudAmb: 0xaab6c6,
       cover: 0.56, cloudA: 0.9, stars: 0, night: 0, smokeDim: 1, foam: 0xeef2f4 },
     night: { elev: -4, az: 100, lightElev: 34, lightAz: 230, turb: 2.0, ray: 2.0, mie: 0.004, sunCol: 0x8fa6e0, sunI: 0.5, hemiSky: 0x24324e, hemiGround: 0x0c0d10, hemiI: 0.3,
-      exposure: 0.95, fog: 0x0b111c, fogD: 0.00004, deep: 0x020a14, seaSky: 0x0e1b2e, glint: 0xb8c8ff, cloudLit: 0x2c3549, cloudAmb: 0x0b0f17,
+      exposure: 0.95, fog: 0x0b111c, fogD: 0.00008, deep: 0x020a14, seaSky: 0x0e1b2e, glint: 0xb8c8ff, cloudLit: 0x2c3549, cloudAmb: 0x0b0f17,
       cover: 0.58, cloudA: 0.55, stars: 1, night: 1, smokeDim: 0.35, foam: 0x1c2533 }
   };
   let todKey = "sunset", envTex = null;
@@ -942,7 +1059,7 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
     cu.uLit.value.copy(lin(P.cloudLit)); cu.uAmb.value.copy(lin(P.cloudAmb)); cu.uCover.value = P.cover; cu.uOpacity.value = P.cloudA; cu.uSun.value.copy(sunDir);
     starMat.opacity = P.stars;
     nightGroup.visible = P.night > 0;
-    for (const f of floods) f.intensity = P.night * 3.2;
+    for (const f of floods) f.intensity = P.night * 2.3;
     smoke.mat.uniforms.uDim.value = P.smokeDim;
   }
   document.querySelectorAll("#tod button").forEach((b) => b.addEventListener("click", () => applyTOD(b.dataset.tod)));
@@ -1126,6 +1243,8 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
     if (mode === "follow" && (camMode !== "follow" || force)) reframe = true;
     camMode = mode;
     document.querySelectorAll("#cams button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.cam === mode ? "true" : "false"));
+    const rb = document.getElementById("reset-main");
+    if (rb) rb.classList.toggle("idle", mode === "auto");
     if (force) snap = true;
   }
   document.querySelectorAll("#cams button").forEach((b) => b.addEventListener("click", () => setCam(b.dataset.cam)));
@@ -1217,7 +1336,10 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
     b.addEventListener("pointerdown", (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); held.add(dir); });
     b.addEventListener("pointerup", stop); b.addEventListener("pointercancel", stop); b.addEventListener("lostpointercapture", stop);
   });
-  document.getElementById("reset-view").addEventListener("click", () => setCam("auto", true));
+  // back to the default: the automatic camera that follows the booster
+  function resetView() { aim = null; held.clear(); setCam("auto", true); hideHint(); }
+  document.getElementById("reset-view").addEventListener("click", resetView);
+  document.getElementById("reset-main").addEventListener("click", resetView);
   function applyHeld(dt) {
     if (aim) {
       aim.k = Math.min(1, aim.k + dt / 0.35);
@@ -1263,7 +1385,7 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
     if (e.code === "Space") { e.preventDefault(); togglePlay(); }
     else if (e.code === "Period") { t = Math.min(tEnd, t + 1); snap = true; bigPlay.hidden = true; }
     else if (e.code === "Comma") { t = Math.max(0, t - 1); snap = true; }
-    else if (e.code === "KeyR") { setCam("auto", true); }
+    else if (e.code === "KeyR") { resetView(); }
     else if (KEYMOVE[e.code]) { e.preventDefault(); held.add(KEYMOVE[e.code]); }
   });
   window.addEventListener("keyup", (e) => { if (KEYMOVE[e.code]) held.delete(KEYMOVE[e.code]); });
@@ -1301,7 +1423,7 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
           f.material.uniforms.uTime.value = clockTime; f.material.uniforms.uI.value = (0.85 + 0.15 * Math.min(1, Tm / 3)) * (b.ghost ? 0.5 : 1);
         }
       });
-      b.light.intensity = s.done ? 0 : Math.min(6, 0.9 * Tm) * (lit > 3 ? 1.4 : 1) * (todKey === "night" ? 2.2 : 1);
+      b.light.intensity = s.done ? 0 : Math.min(6, 0.9 * Tm) * (lit > 3 ? 1.4 : 1) * (todKey === "night" ? 1.5 : 1);
       trails[k].geometry.instanceCount = Math.max(0, Math.min(s.i, run.r.length - 1));
       groundBlast(k, run);
       if (crashed) impact = Math.max(impact, crash(k, run, t - tEndRun));
@@ -1553,8 +1675,10 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
         pickables.push(o);
     });
   }
+  // diagrams whose detail is at the right edge start scrolled there on narrow screens
+  document.querySelectorAll('.fscroll[data-start="end"]').forEach((el) => { el.scrollLeft = el.scrollWidth; });
   // read-only handle for automated checks of the camera controls
-  window.__replay = { camera, controls, get mode() { return camMode; }, get t() { return t; } };
+  window.__replay = { camera, controls, bloom, smoke, fire, get mode() { return camMode; }, get t() { return t; } };
   applyTOD("sunset");
   selectFlight(0);
   resize();

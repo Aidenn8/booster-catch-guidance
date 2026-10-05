@@ -103,10 +103,19 @@ with sync_playwright() as p:
     da = sum((a - b) ** 2 for a, b in zip(t1, t0)) ** 0.5
     check("double-click re-aims the pivot", da > 1, f"pivot moved {da:.0f} m")
 
-    # reset returns to Auto
+    # the labelled Reset view button returns to the automatic camera
+    lit = pg.evaluate("!document.getElementById('reset-main').classList.contains('idle')")
+    pg.locator("#reset-main").click()
+    pg.wait_for_timeout(400)
+    st = pg.evaluate(STATE)
+    idle = pg.evaluate("document.getElementById('reset-main').classList.contains('idle')")
+    check("Reset view button lights up after moving and returns to Auto", lit and idle and st["mode"] == "auto",
+          f"lit before: {lit}, mode after: {st['mode']}, dimmed after: {idle}")
+    pg.locator("#view").click(position={"x": 30, "y": box["height"] / 2})
+    pg.keyboard.down("ArrowUp"); pg.wait_for_timeout(300); pg.keyboard.up("ArrowUp")
     pg.locator("#reset-view").click()
     pg.wait_for_timeout(400)
-    check("reset button returns to Auto", pg.evaluate(STATE)["mode"] == "auto", pg.evaluate(STATE)["mode"])
+    check("pad reset icon returns to Auto", pg.evaluate(STATE)["mode"] == "auto", pg.evaluate(STATE)["mode"])
 
     # Follow: rotate around the booster, then play: the camera keeps up with it
     pg.locator('#cams button[data-cam="follow"]').click()

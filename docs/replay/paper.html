@@ -50,6 +50,62 @@
           </tbody>
         </table></div>
       </div>
+      <figure class="mid diagram" aria-labelledby="geo-cap">
+        <div class="fscroll" data-start="end"><svg class="dg" viewBox="0 0 920 410" role="img" aria-label="Side-view schematic of the catch geometry: tower, arms, terminal gate, catch point, glide-slope cone and offshore boundary.">
+          <defs>
+            <linearGradient id="coneFill" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#ffffff" stop-opacity="0.07"/>
+            </linearGradient>
+            <linearGradient id="coneLine" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0" stop-color="#8e8e8e" stop-opacity="0"/><stop offset="0.35" stop-color="#8e8e8e" stop-opacity="0.9"/>
+            </linearGradient>
+            <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="#56B4E9"/></marker>
+            <marker id="ahg" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="#d8d8d8"/></marker>
+          </defs>
+          <rect x="0" y="380" width="300" height="18" fill="#0b1720"/>
+          <rect x="300" y="380" width="620" height="18" fill="#17140f"/>
+          <line x1="0" y1="380" x2="920" y2="380" class="gl"/>
+          <text x="150" y="393" class="t3" text-anchor="middle">Sea</text>
+          <text x="440" y="393" class="t3" text-anchor="middle">Ground</text>
+          <polygon points="70,29.5 640,237.0 640,380 70,380" fill="url(#coneFill)"/>
+          <line x1="70" y1="29.5" x2="640" y2="237.0" stroke="url(#coneLine)" stroke-width="1.3" stroke-dasharray="6 4"/>
+          <line x1="526" y1="237.0" x2="640" y2="237.0" class="ref"/>
+          <path d="M550 237.0 A90 90 0 0 1 555.4 206.2" class="ref" fill="none"/>
+          <text x="542" y="226" class="t3" text-anchor="end">20°</text>
+          <line x1="588" y1="36" x2="588" y2="380" class="off"/>
+          <g class="scale"><line x1="884" y1="380" x2="884" y2="270" class="sb"/><line x1="878" y1="380" x2="890" y2="380" class="sb"/><line x1="878" y1="270" x2="890" y2="270" class="sb"/><text x="874" y="329" class="t3" text-anchor="end">50 m</text></g>
+          <rect x="700" y="58.8" width="42" height="321.2" class="tower"/>
+          <text x="721" y="48.8" class="t2" text-anchor="middle">Tower</text>
+          <rect x="604" y="336.0" width="72" height="44.0" class="mount"/>
+          <text x="640" y="367" class="t3" text-anchor="middle">Launch mount</text>
+          <rect x="627" y="158.9" width="26" height="156.20000000000002" rx="6" class="booster"/>
+          <line x1="653" y1="171.0" x2="700" y2="171.0" class="arms"/>
+          <path d="M60 6 C 390 18, 612 36, 636 136 S 640 192, 640 202.6" class="traj"/>
+          <path d="M456.8 36.9 L 468.7 39.1" class="traj" marker-end="url(#ah)"/>
+          <line x1="640" y1="217.6" x2="640" y2="228.0" class="td" marker-end="url(#ahg)"/>
+          <polygon points="640,203.6 647,215.6 633,215.6" class="mk"/>
+          <g class="mkx"><line x1="634" y1="231.0" x2="646" y2="243.0"/><line x1="646" y1="231.0" x2="634" y2="243.0"/></g>
+          <g class="co"><circle cx="676" cy="157.0" r="9.5"/><text x="676" y="161.0" text-anchor="middle">1</text></g>
+          <g class="co"><circle cx="612" cy="210.6" r="9.5"/><text x="612" y="214.6" text-anchor="middle">2</text></g>
+          <g class="co"><circle cx="612" cy="252.0" r="9.5"/><text x="612" y="256.0" text-anchor="middle">3</text></g>
+          <g class="co"><circle cx="420" cy="141.9" r="9.5"/><text x="420" y="145.9" text-anchor="middle">4</text></g>
+          <g class="co"><circle cx="572" cy="50" r="9.5"/><text x="572" y="54" text-anchor="middle">5</text></g>
+          <g class="co"><circle cx="300" cy="42" r="9.5"/><text x="300" y="46" text-anchor="middle">6</text></g>
+          <g class="co"><circle cx="612" cy="301.1" r="9.5"/><text x="612" y="305.1" text-anchor="middle">7</text></g>
+        </svg></div>
+        <ol class="dg-key" id="geo-cap">
+          <li>Arms grip the booster about 30&nbsp;m above its centre of mass.</li>
+          <li>Terminal gate, 12&nbsp;m above the catch point, passed at 5&nbsp;m/s. The shared terminal descent takes over here.</li>
+          <li>Catch point: where the centre of mass must be at capture.</li>
+          <li>Glide-slope cone: the planned path stays above 20&deg; from the catch point.</li>
+          <li>Offshore boundary: the plan stays offshore of it until the commit window opens, 6&nbsp;s before the gate.</li>
+          <li>Nominal convex MPC trajectory, arriving from ignition 1,250&nbsp;m up and 280&nbsp;m offshore.</li>
+          <li>Booster outline at capture, 71&nbsp;m long.</li>
+        </ol>
+        <figcaption><b>Catch geometry.</b> Side view; heights to scale, horizontal distances compressed.</figcaption>
+      </figure>
       <p><b>Outcomes.</b> A flight is <em>caught</em> if the centre of mass passes the catch height
         within tolerance. A booster that misses keeps flying, diverting offshore, until it reaches the
         ground: a <em>safe miss</em> if it comes down more than 40&nbsp;m from the tower, a <em>pad
@@ -124,6 +180,17 @@
         engines can supply.</p>
       <h3>Shared components</h3>
       <p>To isolate the guidance law, both controllers share the rest of the stack:</p>
+      <figure class="mid diagram">
+        <div class="fscroll"><svg class="dg" viewBox="0 0 920 184" role="img" aria-label="Block diagram of the closed loop: observer, guidance, mode logic, engines and vehicle, with navigation feedback.">
+          <defs><marker id="ahb" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="#8e8e8e"/></marker></defs>
+          <rect x="0" y="6" width="12" height="12" rx="3" class="box key"/><text x="20" y="16" class="t2">Differs between the controllers</text><rect x="250" y="6" width="12" height="12" rx="3" class="box"/><text x="270" y="16" class="t2">Shared by both</text>
+          <rect x="0.75" y="46" width="158.5" height="88" rx="8" class="box"/><text x="80.0" y="78" class="t1" text-anchor="middle">Observer</text><text x="80.0" y="100" class="t2" text-anchor="middle">thrust effectiveness,</text><text x="80.0" y="117" class="t2" text-anchor="middle">residual acceleration</text><line x1="163" y1="90.0" x2="186" y2="90.0" class="ln" marker-end="url(#ahb)"/><rect x="190.75" y="46" width="158.5" height="88" rx="8" class="box key"/><text x="270.0" y="78" class="t1" text-anchor="middle">Guidance</text><text x="270.0" y="100" class="t2" text-anchor="middle">convex MPC or</text><text x="270.0" y="117" class="t2" text-anchor="middle">braking baseline</text><line x1="353" y1="90.0" x2="376" y2="90.0" class="ln" marker-end="url(#ahb)"/><rect x="380.75" y="46" width="158.5" height="88" rx="8" class="box"/><text x="460.0" y="78" class="t1" text-anchor="middle">Mode logic</text><text x="460.0" y="100" class="t2" text-anchor="middle">terminal descent,</text><text x="460.0" y="117" class="t2" text-anchor="middle">go/no-go, abort, divert</text><line x1="543" y1="90.0" x2="566" y2="90.0" class="ln" marker-end="url(#ahb)"/><rect x="570.75" y="46" width="158.5" height="88" rx="8" class="box"/><text x="650.0" y="78" class="t1" text-anchor="middle">Engines</text><text x="650.0" y="100" class="t2" text-anchor="middle">13 → 3 engines,</text><text x="650.0" y="117" class="t2" text-anchor="middle">40–100% throttle, 0.25 s lag</text><line x1="733" y1="90.0" x2="756" y2="90.0" class="ln" marker-end="url(#ahb)"/><rect x="760.75" y="46" width="158.5" height="88" rx="8" class="box"/><text x="840.0" y="78" class="t1" text-anchor="middle">Vehicle</text><text x="840.0" y="100" class="t2" text-anchor="middle">3-DoF dynamics,</text><text x="840.0" y="117" class="t2" text-anchor="middle">drag, wind, gusts</text><path d="M840.0 137 V168 H80.0 V140" class="ln" fill="none" marker-end="url(#ahb)"/><rect x="270.0" y="157" width="380" height="22" fill="#000"/><text x="460.0" y="172.5" class="t2" text-anchor="middle">Navigation: position and velocity, with sensor noise</text>
+        </svg></div>
+        <figcaption><b>The closed loop.</b> Only the guidance block differs between the two controllers, so any
+          difference in outcome comes from the guidance law.</figcaption>
+      </figure>
+
       <ul>
         <li>the thrust model (nominal limits and a 0.25&nbsp;s engine lag) and the mass estimate;</li>
         <li>an observer that attributes unexplained acceleration along the thrust to a thrust-effectiveness
