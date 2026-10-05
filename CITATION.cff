@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this code or its results, please cite it as below."
+title: "Fuel-optimal convex guidance versus a braking heuristic for tower capture"
+abstract: >-
+  A simulation study of the terminal phase of a Super Heavy booster tower catch. A convex
+  model-predictive controller (lossless convexification, second-order cone program) and an
+  engineered braking-profile controller fly identical dispersed landing burns with shared
+  sensing, actuation, estimation, terminal descent and abort logic. Includes a Monte Carlo
+  campaign, engine-failure, crosswind and capture-basin studies, an engine-out braking
+  reserve, independent verification of the guidance, and an interactive 3D replay.
+type: software
+authors:
+  - given-names: Aiden
+    family-names: Huang
+repository-code: "https://github.com/Aidenn8/booster-catch-guidance"
+url: "https://aidenn8.github.io/booster-catch-guidance/"
+license: MIT
+version: "1.0.0"
+date-released: "2026-10-05"
+keywords:
+  - guidance navigation and control
+  - convex optimization
+  - model predictive control
+  - powered descent guidance
+  - rocket landing
+  - Monte Carlo simulation

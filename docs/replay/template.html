@@ -481,10 +481,10 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
   }
   composer.addPass(bloom);
   const finalPass = new THREE.ShaderPass({
-    uniforms: { tDiffuse: { value: null }, uExposure: { value: 0.47 }, uTone: { value: HDR ? 1 : 0 } },
+    uniforms: { tDiffuse: { value: null }, uExposure: { value: 0.47 }, uTone: { value: HDR ? 1 : 0 }, uDither: { value: 1 } },
     vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
     fragmentShader: [
-      "uniform sampler2D tDiffuse; uniform float uExposure; uniform float uTone; varying vec2 vUv;",
+      "uniform sampler2D tDiffuse; uniform float uExposure; uniform float uTone; uniform float uDither; varying vec2 vUv;",
       "vec3 aces(vec3 x){ return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0); }",
       "void main(){",
       "  vec3 c = texture2D(tDiffuse, vUv).rgb;",
@@ -492,7 +492,7 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
       "  float l = dot(c, vec3(0.2126, 0.7152, 0.0722)); c = mix(vec3(l), c, 1.08);",
       "  c = pow(max(c, 0.0), vec3(1.0 / 2.2));",
       "  vec2 q = vUv - 0.5; c *= 1.0 - 0.55 * dot(q, q);",
-      "  c += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0;",   // dither: no banding in dark gradients
+      "  c += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) * uDither / 255.0;",   // dither: no banding in dark gradients
       "  gl_FragColor = vec4(c, 1.0);",
       "}"].join("\n")
   });
@@ -1678,7 +1678,7 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) 
   // diagrams whose detail is at the right edge start scrolled there on narrow screens
   document.querySelectorAll('.fscroll[data-start="end"]').forEach((el) => { el.scrollLeft = el.scrollWidth; });
   // read-only handle for automated checks of the camera controls
-  window.__replay = { camera, controls, bloom, smoke, fire, get mode() { return camMode; }, get t() { return t; } };
+  window.__replay = { camera, controls, bloom, smoke, fire, finalPass, get mode() { return camMode; }, get t() { return t; }, get tEnd() { return tEnd; } };
   applyTOD("sunset");
   selectFlight(0);
   resize();

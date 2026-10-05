@@ -271,13 +271,18 @@ def fig_tradeoff():
     by = {}
     for d in rows:
         by.setdefault(d["controller"], []).append(d)
+    # mc_tune_v4.jsonl was flown when the approach cap was on by default, so there a key without
+    # "approach_cap" is a capped setting; in a file flown with today's defaults the capped
+    # settings say "approach_cap=1" explicitly
+    legacy = any("approach_cap=0" in k for k in by)
+    is_capped = lambda k: family(k) == "mpc" and ("approach_cap=1" in k or (legacy and "approach_cap" not in k))
     pts = []
     for key, rs in by.items():
         k = sum(d["caught"] for d in rs)
         lo, hi = wilson(k, len(rs))
         prop = [d["propellant_left"] / 1e3 for d in rs if d["caught"]]
         pts.append(dict(key=key, fam=family(key), n=len(rs), rate=k / len(rs), lo=lo, hi=hi,
-                        prop=float(np.median(prop)) if prop else np.nan, capped="approach_cap=0" not in key))
+                        prop=float(np.median(prop)) if prop else np.nan, capped=is_capped(key)))
     fig, ax = plt.subplots(figsize=(TEXT, 4.1))
     base = sorted([p for p in pts if p["fam"] == "baseline"], key=lambda p: p["prop"])
     ax.plot([p["prop"] for p in base], [100 * p["rate"] for p in base], color=COL["baseline"], lw=1, alpha=0.45, zorder=2)

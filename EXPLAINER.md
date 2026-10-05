@@ -164,3 +164,11 @@ The honest limits: this is a simplified model (the booster is treated as a point
 spinning body), all vehicle numbers are public estimates, and the tolerances are my
 assumptions. The comparisons and the reasons behind them are the result, not the exact
 percentages.
+
+## Where to go next
+
+* **[Watch it](https://aidenn8.github.io/booster-catch-guidance/):** the interactive report with a
+  3D replay of six landings, both pilots flying side by side.
+* **[The technical report](REPORT.md):** the same story with the equations, every table and the
+  seven things that broke along the way.
+* **[How the code works](docs/ARCHITECTURE.md)** and **[how to re-run everything](docs/REPRODUCE.md)**.

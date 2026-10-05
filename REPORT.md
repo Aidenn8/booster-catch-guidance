@@ -1,5 +1,7 @@
 # Catching Super Heavy: fuel-optimal guidance versus a braking heuristic
 
+*Also available as an [interactive web page with a 3D replay](https://aidenn8.github.io/booster-catch-guidance/).*
+
 A simulation study of the last ~16 seconds of a Super Heavy tower catch: a convex,
 fuel-optimal model-predictive controller and an engineered braking-profile controller fly
 the same dispersed landing burns, with the same sensors, engines, estimator, terminal
@@ -205,6 +207,7 @@ Precision at the arms (caught flights): distance from the catch point median 4.2
 sideways speed 95th percentile 0.08 vs 0.31 m/s.
 
 ![](docs/images/outcomes.png)
+![](docs/images/propellant.png)
 ![](docs/images/precision.png)
 
 What this says:
@@ -381,4 +384,4 @@ part of the work.
 * L. Blackmore, "Autonomous precision landing of space rockets", *The Bridge* 46(4), 2016.
 * Public vehicle figures: Wikipedia, "SpaceX Raptor" and "SpaceX Super Heavy" (accessed 2026).
 
-Reproduce everything: [docs/REPRODUCE.md](docs/REPRODUCE.md).
+Reproduce everything: [docs/REPRODUCE.md](docs/REPRODUCE.md). Data formats: [docs/DATA.md](docs/DATA.md). Code walkthrough: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Interactive version with the 3D replay: <https://aidenn8.github.io/booster-catch-guidance/>.

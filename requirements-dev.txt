@@ -1,0 +1,4 @@
+# Optional: headless-browser checks of the replay page (scripts/check_replay.py,
+# scripts/check_camera.py). After installing, run `python -m playwright install chromium`.
+-r requirements.txt
+playwright>=1.45
