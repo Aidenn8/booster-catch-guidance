@@ -1,6 +1,5 @@
 # Fuel-optimal convex guidance versus a braking heuristic for tower capture
 
-[![tests](https://github.com/Aidenn8/booster-catch-guidance/actions/workflows/tests.yml/badge.svg)](https://github.com/Aidenn8/booster-catch-guidance/actions/workflows/tests.yml)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)
 

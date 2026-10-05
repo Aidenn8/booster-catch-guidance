@@ -256,7 +256,6 @@ Also: `tower_hit(r)` (the tower volume test) and `ballistic_impact(r, v)`.
 | `test_late_engine_failure_diverts_clear_of_the_pad` | A late failure leads to an abort that comes down clear of the pad |
 
 (Some tests are parametrised, so the total count is higher than the number of functions.)
-GitHub Actions runs the suite on Python 3.11, 3.12 and 3.13 on every push.
 
 ## Design decisions
 
