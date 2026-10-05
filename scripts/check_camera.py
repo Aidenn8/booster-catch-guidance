@@ -29,6 +29,9 @@ with sync_playwright() as p:
     pg.on("pageerror", lambda e: errors.append(str(e)))
     pg.goto(page_path.as_uri())
     pg.wait_for_timeout(3000)
+    # the replay sits below the title and abstract: bring the whole figure into view first
+    pg.evaluate("document.querySelector('#fig-replay').scrollIntoView({block: 'start'})")
+    pg.wait_for_timeout(300)
     box = pg.locator("#view").bounding_box()
     cx, cy = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
     # start on the tower shot, mid-flight

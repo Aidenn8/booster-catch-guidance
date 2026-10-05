@@ -1,0 +1,444 @@
+  <h2 class="sec" id="sec-intro"><span class="num">1</span>Introduction</h2>
+  <p>Super Heavy boosters return to the launch site and are caught by a pair of arms on the
+    launch tower instead of landing on legs. The last seconds of the landing burn are
+    therefore a precision-guidance problem with unusual structure: the target is a point in the
+    air beside a 146&nbsp;m steel structure, the engine count drops from 13 to 3 partway through
+    the burn, and near the end the booster is so light that three engines at minimum throttle
+    almost exactly support it.</p>
+  <p>Powered-descent guidance by convex optimization is well established. Lossless
+    convexification turns the non-convex thrust bounds of the soft-landing problem into a
+    second-order cone program whose solution is optimal for the original problem
+    <a class="cite" href="#ref-1">[1]</a>, <a class="cite" href="#ref-2">[2]</a>, and
+    convex optimization has been reported in the landing guidance of reusable rockets
+    <a class="cite" href="#ref-3">[3]</a>. This study asks what such guidance buys for a tower
+    catch compared with a well-engineered heuristic, and where its weak points are. Our
+    contributions are:</p>
+  <ul>
+    <li>A three-degree-of-freedom simulation of the terminal phase with the tower geometry,
+      the 13&nbsp;&rarr;&nbsp;3 engine switch, engine lag and a Monte Carlo dispersion model, in which
+      the two controllers share sensing, estimation, terminal descent and abort logic so
+      that only the guidance law differs.</li>
+    <li>A convex model-predictive controller with tower-specific constraints (an offshore
+      half-space, a glide-slope cone, an optional approach-speed cap and an optional
+      engine-out braking reserve), verified against independent solutions.</li>
+    <li>Campaigns on identical dispersed flights quantifying catch rate, precision, propellant
+      margin, crosswind limits, the capture basin and the propellant cost of engine-out
+      tolerance.</li>
+    <li>Seven failure mechanisms found by tracing individual closed-loop flights
+      (<a href="#sec-mech">&sect;6</a>).</li>
+  </ul>
+
+  <h2 class="sec" id="sec-setup"><span class="num">2</span>Problem setup</h2>
+  <p>The frame has <em>x</em> pointing from offshore towards the tower and <em>z</em> up. The
+    landing burn begins 1,250&nbsp;m above the ground, 280&nbsp;m offshore, falling at
+    270&nbsp;m/s. Vehicle and scenario parameters are public estimates
+    <a class="cite" href="#ref-7">[7]</a> (<a href="#tab-vehicle">Table&nbsp;1</a>).</p>
+  <div class="tbl" id="tab-vehicle">
+    <table class="bt">
+      <caption><b>Table 1.</b> Vehicle and scenario parameters.</caption>
+      <thead><tr><th>Quantity</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Engine thrust (Raptor 2, sea level)</td><td>2.256&nbsp;MN, throttle 40&ndash;100%</td></tr>
+        <tr><td>Specific impulse</td><td>327&nbsp;s</td></tr>
+        <tr><td>Dry mass; landing propellant at ignition</td><td>275&nbsp;t; 45&nbsp;t</td></tr>
+        <tr><td>Length &times; diameter</td><td>71&nbsp;m &times; 9&nbsp;m</td></tr>
+        <tr><td>Engines</td><td>13 at ignition; the 3 centre engines from <em>t</em>&nbsp;=&nbsp;3&nbsp;s</td></tr>
+        <tr><td>Ignition state</td><td>1,250&nbsp;m altitude, 280&nbsp;m offshore, 60&nbsp;m north; 270&nbsp;m/s down, 30&nbsp;m/s towards the tower</td></tr>
+        <tr><td>Catch point</td><td>booster centre of mass, 65&nbsp;m above the tower base</td></tr>
+        <tr><td>Terminal gate</td><td>12&nbsp;m above the catch point, 5&nbsp;m/s descent</td></tr>
+        <tr><td>Capture tolerance</td><td>&le;&nbsp;1&nbsp;m from the catch point; descent &lt;&nbsp;1.5&nbsp;m/s; lateral &lt;&nbsp;0.5&nbsp;m/s; tilt &lt;&nbsp;3&deg;</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><b>Outcomes.</b> A flight is <em>caught</em> if the centre of mass passes the catch height
+    within tolerance. A booster that misses keeps flying, diverting offshore, until it reaches
+    the ground; this is a <em>safe miss</em> if it comes down more than 40&nbsp;m from the tower
+    and a <em>pad strike</em> otherwise. Contact with the tower structure is always a pad strike.</p>
+  <p><b>The throttle floor.</b> Three engines at minimum throttle produce
+    \(3 \times 0.4 \times 2.256 = 2.71\)&nbsp;MN, while a near-empty booster weighs about
+    2.75&nbsp;MN. Near the end of the burn the booster can therefore brake at up to about
+    13&nbsp;m/s&sup2; but can accelerate its descent by only a few tenths of a m/s&sup2;.
+    Over-braking close to the arms is unrecoverable (an early version stalled 12&nbsp;m above
+    the arms and hovered until its propellant ran out), and a constant-speed final descent
+    would sit on the floor with no authority to correct downwards. Both controllers therefore
+    hand over at the terminal gate to the same law, a constant 1&nbsp;m/s&sup2; deceleration
+    from 5 to 1&nbsp;m/s, which keeps thrust about 10% above the floor.</p>
+
+  <h2 class="sec" id="sec-method"><span class="num">3</span>Guidance</h2>
+  <h3 id="sec-mpc">3.1&ensp;Convex model-predictive control</h3>
+  <p>Following <a class="cite" href="#ref-1">[1]</a>, <a class="cite" href="#ref-2">[2]</a>,
+    with \(\mathbf u = \mathbf T/m\), slack \(\sigma = \Gamma/m\) and \(z = \ln m\), the
+    controller solves, from the current estimated state to the terminal gate,</p>
+  <div class="eq">\[
+    \begin{aligned}
+    \underset{\mathbf u,\,\sigma}{\text{maximize}}\quad & z(t_f) \\
+    \text{subject to}\quad & \dot{\mathbf r} = \mathbf v, \qquad \dot{\mathbf v} = \mathbf u + \mathbf g + \hat{\mathbf a}(t), \qquad \dot z = -\alpha\,\sigma, \\
+    & \lVert \mathbf u \rVert \le \sigma, \qquad u_z \ge \sigma\cos\theta_{\max}(t), \\
+    & \mu_{\min}(t)\bigl[1 - \delta z + \tfrac12\,\delta z^{2}\bigr] \le \sigma \le \mu_{\max}(t)\bigl[1 - \delta z\bigr], \\
+    & \tan\gamma\,\lVert \mathbf r_{xy} - \mathbf r^{\star}_{xy} \rVert \le r_z - r^{\star}_z, \\
+    & \mathbf r(t_f) = \mathbf r_{\mathrm g}, \quad \mathbf v(t_f) = (0,\,0,\,-v_{\mathrm g}), \quad z(t_f) \ge \ln\bigl(m_{\mathrm{dry}} + m_{\mathrm{td}}\bigr),
+    \end{aligned}
+    \tag{1}
+  \]</div>
+  <p>where \(\delta z = z - z_0(t)\) with \(z_0(t)\) the logarithm of the lightest reachable
+    mass, \(\mu_{\min,\max}(t) = n(t)\,T_{\min,\max}\,e^{-z_0(t)}\) for \(n(t)\) live engines,
+    \(\alpha = 1/(I_{\mathrm{sp}} g_0)\), \(\mathbf r^{\star}\) is the catch point,
+    \(\gamma = 20^\circ\) and \(m_{\mathrm{td}} \approx 3.9\)&nbsp;t is the propellant the terminal
+    descent will need. The disturbance \(\hat{\mathbf a}\) combines drag, evaluated on the
+    previous plan's velocities and refined in a second pass, with the observer's estimate
+    (<a href="#sec-shared">&sect;3.3</a>). The upper thrust bound carries an 8% margin and the
+    tilt limit \(\theta_{\max}\) is 13&deg; (15&deg; less a 2&deg; margin), tightening to 3&deg;
+    in the 2&nbsp;s before the gate. The relaxation is lossless (\(\lVert\mathbf u\rVert = \sigma\)
+    at the optimum); plans that would command less than minimum throttle are rejected.
+    Before the commit window (6&nbsp;s before the gate) the trajectory is confined to a half-space
+    offshore of the tower.</p>
+  <p>Two optional convex constraints are evaluated as variants. The <em>approach cap</em> limits
+    the closing speed towards the tower to 10&nbsp;m/s inside the commit window. The
+    <em>engine-out braking reserve</em> requires, throughout the 3-engine phase, that the
+    remaining engines could still bring the booster to the gate speed if one failed:</p>
+  <div class="eq">\[
+    v_z^{2} \le v_{\mathrm g}^{2} + 2\,a_{\mathrm{eo}}\,\bigl(r_z - h_{\mathrm g}\bigr), \qquad
+    a_{\mathrm{eo}} = \frac{(n-1)\,T^{\mathrm{eng}}_{\max}}{m_0} - g_0 ,
+    \tag{2}
+  \]</div>
+  <p>a square bounded by an affine function, hence a second-order cone constraint.</p>
+  <p>Problem (1) is discretized on 32 nodes with a node on every rule boundary (engine switch,
+    commit window, final alignment) and solved with Clarabel
+    <a class="cite" href="#ref-5">[5]</a> through CVXPY <a class="cite" href="#ref-4">[4]</a> in
+    0.1&ndash;0.3&nbsp;s. Because every extra second of flight is gravity loss, propellant use rises
+    monotonically with \(t_f\) inside the feasible window, and the controller takes the earliest
+    feasible \(t_f\), found by bisection on feasibility. It re-plans 0.5&nbsp;s after ignition and
+    then every second, freezing the plan 2.5&nbsp;s before the gate, and tracks the plan with a PD
+    correction. If no plan exists, the margins are relaxed in tiers and a faster gate arrival
+    (up to 12&nbsp;m/s) is admitted; if the problem is still infeasible more than 3&nbsp;s before
+    the gate, infeasibility is taken as a certificate that the catch is lost and the booster
+    aborts. An engine failure triggers an immediate re-plan with the reduced engine count.</p>
+
+  <h3 id="sec-baseline">3.2&ensp;Braking-profile baseline</h3>
+  <p>Vertically, the baseline applies during the 13-engine phase the constant acceleration that
+    places the booster on a constant-deceleration speed profile at the engine switch, then
+    follows that profile (deceleration \(a_2\), tuned) to the gate. Laterally it follows a
+    braking profile (3&nbsp;m/s&sup2;, capped at 45&nbsp;m/s) to a holding point offshore of the
+    tower, retargeting the catch point when the commit window opens. On an engine failure it
+    rescales \(a_2\) to the remaining braking capability, and it aborts if the braking needed to
+    reach the gate exceeds 95% of what the engines can supply.</p>
+
+  <h3 id="sec-shared">3.3&ensp;Shared components</h3>
+  <p>To isolate the guidance law, both controllers use the same thrust model (commands pass
+    through the nominal engine limits and a 0.25&nbsp;s first-order lag) and mass estimate; the
+    same observer, which attributes unexplained acceleration along the thrust to a
+    thrust-effectiveness factor \(k\) (thrust bias and mass error) and across it to a residual
+    (mostly wind), scaling commands by \(1/k\) and feeding the residual forward; the same terminal
+    descent, entered one lag early; and the same go/no-go check at the gate (predicted lateral
+    stopping point within 1.5&nbsp;m), tower keep-out monitor and offshore divert of up to 30&deg;
+    tilt after an abort.</p>
+
+  <h3 id="sec-verify">3.4&ensp;Verification</h3>
+  <p>The guidance and simulator were checked against independent solutions
+    (<a href="#tab-verify">Table&nbsp;2</a>). At a fixed flight time the propellant is nearly
+    independent of the thrust profile, because the boundary conditions fix the vertical impulse;
+    the discriminating test is therefore the free-final-time comparison with SLSQP on the
+    original non-convex problem.</p>
+  <div class="tbl" id="tab-verify">
+    <table class="bt">
+      <caption><b>Table 2.</b> Verification of the guidance and simulator.</caption>
+      <thead><tr><th>Check</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr><td>Lossless gap on the nominal plan, max \((\sigma - \lVert\mathbf u\rVert)/\sigma\)</td><td>1.4&nbsp;&times;&nbsp;10<sup>&minus;7</sup></td></tr>
+        <tr><td>Planned thrust within the true 40&ndash;100% range</td><td>every interval</td></tr>
+        <tr><td>Vertical descent vs. bang-bang shooting solution</td><td>16,524.6 vs. 16,520.2&nbsp;kg (0.03%); 10.261 vs. 10.256&nbsp;s</td></tr>
+        <tr><td>SLSQP on the non-convex problem, free \(t_f\), three initial guesses</td><td>all 11.233&nbsp;s, 18,170.2&nbsp;kg; convex 11.221&nbsp;s, 18,173.3&nbsp;kg (+0.02%)</td></tr>
+        <tr><td>Plan replayed open loop in the simulator (14&nbsp;s from 270&nbsp;m/s)</td><td>4.7&nbsp;m, 0.40&nbsp;m/s, 40&nbsp;kg error</td></tr>
+        <tr><td>Integrator vs. exact rocket-equation solution</td><td>&lt;&nbsp;1&nbsp;mm, &lt;&nbsp;1&nbsp;mm/s</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="sec" id="sec-exp"><span class="num">4</span>Experimental setup</h2>
+  <p>The simulator integrates a point mass with RK4 at 50&nbsp;Hz; the thrust direction stands in
+    for attitude. Drag uses a crossflow model: vertical flow on the 64&nbsp;m&sup2; base and
+    horizontal flow on the 639&nbsp;m&sup2; side. Monte Carlo dispersions are listed in
+    <a href="#tab-disp">Table&nbsp;3</a>. A 15&nbsp;m/s crosswind pushes the booster sideways at
+    0.22&nbsp;m/s&sup2;, while the terminal descent's tilt limit allows only about 0.5&nbsp;m/s&sup2;
+    of correction, so wind is a real constraint here.</p>
+  <div class="tbl" id="tab-disp">
+    <table class="bt">
+      <caption><b>Table 3.</b> Truth model and dispersions (1&sigma; unless stated).</caption>
+      <thead><tr><th>Quantity</th><th>Model / dispersion</th></tr></thead>
+      <tbody>
+        <tr><td>Drag coefficients</td><td>base 0.9, side 0.7; both &times;&nbsp;U(0.8,&nbsp;1.2)</td></tr>
+        <tr><td>Wind</td><td>mean U(0,&nbsp;15)&nbsp;m/s, random direction; Ornstein&ndash;Uhlenbeck gusts, &sigma;&nbsp;=&nbsp;0.5&nbsp;+&nbsp;0.15&nbsp;&times;&nbsp;mean, 3&nbsp;s correlation</td></tr>
+        <tr><td>Engines</td><td>thrust bias N(0,&nbsp;2%) clipped at &plusmn;5%; <em>I</em><sub>sp</sub> &times;&nbsp;N(1,&nbsp;0.5%); 0.25&nbsp;s lag</td></tr>
+        <tr><td>Dry mass</td><td>&times;&nbsp;N(1,&nbsp;2%)</td></tr>
+        <tr><td>Ignition state</td><td>position 20&nbsp;m horizontal, 15&nbsp;m vertical; velocity 3&nbsp;m/s horizontal, 5&nbsp;m/s vertical</td></tr>
+        <tr><td>Engine failure</td><td>probability 0.2, uniform time in [0,&nbsp;15]&nbsp;s; one engine lost for the rest of the burn</td></tr>
+        <tr><td>Navigation</td><td>white noise, 0.3&nbsp;m and 0.1&nbsp;m/s</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><b>Protocol.</b> Controller settings were chosen on a separate tuning set (40 dispersed
+    flights, seed 99) by a rule fixed in advance: highest catch rate, ties broken by propellant
+    remaining. This selected an 8% thrust margin and 2&deg; tilt margin for the MPC and
+    \(a_2 = 8\)&nbsp;m/s&sup2; for the baseline. Evaluation used fresh draws: a 300-flight Monte Carlo
+    (seed 2026), a sweep of engine-failure times, a crosswind sweep, a grid of ignition points
+    and a propellant study. Every controller flew the same flights in every campaign.
+    Intervals are 95% Wilson score intervals <a class="cite" href="#ref-6">[6]</a>.</p>
+
+  <h2 class="sec" id="sec-results"><span class="num">5</span>Results</h2>
+  <h3 id="sec-nominal">5.1&ensp;Nominal flight</h3>
+  <p>In calm air both controllers catch the booster (<a href="#fig-traj">Figure&nbsp;2</a>). The MPC
+    arrives 1&nbsp;cm from the catch point with 5.5&nbsp;t of propellant after 17.1&nbsp;s; the
+    baseline arrives 45&nbsp;cm off with 3.9&nbsp;t after 18.9&nbsp;s. The MPC's plan brakes late
+    and hard, which is where its propellant saving comes from and, as
+    <a href="#sec-eo">&sect;5.4</a> shows, where its vulnerability comes from.</p>
+  <figure class="mid" id="fig-traj">
+    <img src="img:trajectories.png" alt="Four panels: side view of both trajectories, a close-up of the last 200 m with the gate and catch point, speed against time, and thrust against time within the engines' feasible range.">
+    <figcaption><b>Figure 2.</b> Nominal landing burn. (a) Side view; the dotted line bounds the
+      offshore half-space. (b) The last 200&nbsp;m, with the terminal gate (&#9650;) and catch point
+      (&times;). (c) Descent rate (solid) and lateral speed (dashed). (d) Thrust, with the feasible
+      range for 13 and 3 engines shaded.</figcaption>
+  </figure>
+
+  <h3 id="sec-tuning">5.2&ensp;Propellant versus robustness</h3>
+  <p>The baseline's single parameter trades one quantity for the other: brake gently and it
+    lands with 2&nbsp;t; brake hard and it has propellant to spare but stops passing the go/no-go
+    check at the gate (45% caught at \(a_2 = 10\)). Every MPC setting lies above and to the
+    right of the baseline's curve (<a href="#fig-tradeoff">Figure&nbsp;3</a>).</p>
+  <figure id="fig-tradeoff">
+    <img src="img:tradeoff.png" alt="Catch rate against median propellant left for each controller setting on the tuning set.">
+    <figcaption><b>Figure 3.</b> Catch rate against median propellant remaining on the tuning set
+      (40 flights per setting; bars are 95% intervals). Hollow markers: MPC with the approach
+      cap.</figcaption>
+  </figure>
+
+  <h3 id="sec-mc">5.3&ensp;Dispersed Monte Carlo</h3>
+  <p>Over 300 dispersed flights, 56 of which drew an engine failure, the tuned MPC and the
+    capped MPC each caught 86.3% against the baseline's 73.0%
+    (<a href="#tab-mc">Table&nbsp;4</a>). Without an engine failure the MPC is nearly perfect,
+    243&ndash;244 of 244 against 217 (<a href="#tab-split">Table&nbsp;5</a>); the baseline's misses
+    are aborts after a low or slow start (46 of its 81 misses) or a no-go at the gate (29).
+    The MPC also lands 9&times; more precisely: median distance from the catch point 4.2&nbsp;cm
+    (95th percentile 9.5&nbsp;cm) against 38&nbsp;cm (76&nbsp;cm), and 95th-percentile lateral speed
+    0.08 against 0.31&nbsp;m/s (<a href="#fig-precision">Figure&nbsp;5</a>).</p>
+  <div class="tbl mid" id="tab-mc">
+    <table class="bt res">
+      <caption><b>Table 4.</b> Outcomes over 300 dispersed flights per controller (identical flights). Propellant: median (5th percentile) over caught flights.</caption>
+      <thead><tr><th>Controller</th><th class="n">Caught</th><th class="n">95% CI</th><th class="n">Safe miss</th><th class="n">Pad strike</th><th class="n">Propellant left (t)</th></tr></thead>
+      <tbody>
+        <tr><td>Convex MPC (tuned)</td><td class="n"><b>259</b> (86.3%)</td><td class="n">82.0&ndash;89.8</td><td class="n">21</td><td class="n">20</td><td class="n"><b>5.2</b> (3.2)</td></tr>
+        <tr><td>Convex MPC + approach cap</td><td class="n"><b>259</b> (86.3%)</td><td class="n">82.0&ndash;89.8</td><td class="n">36</td><td class="n"><b>5</b></td><td class="n">3.7 (1.9)</td></tr>
+        <tr><td>Convex MPC + engine-out reserve</td><td class="n">150 (50.0%)</td><td class="n">44.4&ndash;55.6</td><td class="n">129</td><td class="n">21</td><td class="n">1.1 (0.3)</td></tr>
+        <tr><td>Baseline</td><td class="n">219 (73.0%)</td><td class="n">67.7&ndash;77.7</td><td class="n">73</td><td class="n">8</td><td class="n">3.9 (2.7)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="tbl mid" id="tab-split">
+    <table class="bt res">
+      <caption><b>Table 5.</b> The same flights split by whether an engine failed.</caption>
+      <thead><tr><th>Controller</th><th class="n">No failure (244): caught</th><th class="n">Pad strikes</th><th class="n">Failure (56): caught / safe / strike</th></tr></thead>
+      <tbody>
+        <tr><td>Convex MPC (tuned)</td><td class="n">243</td><td class="n">0</td><td class="n">16 / 20 / 20</td></tr>
+        <tr><td>Convex MPC + approach cap</td><td class="n"><b>244</b></td><td class="n">0</td><td class="n">15 / 36 / <b>5</b></td></tr>
+        <tr><td>Convex MPC + engine-out reserve</td><td class="n">121</td><td class="n">17</td><td class="n">29 / 23 / 4</td></tr>
+        <tr><td>Baseline</td><td class="n">217</td><td class="n">0</td><td class="n">2 / 46 / 8</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Engine failures separate the variants. The tuned MPC saves 16 of 56 boosters to the
+    baseline's 2, but 20 of its aborts come down near the pad, because its late-braking profile
+    leaves less room to divert. The approach cap converts 15 of those pad strikes into safe misses
+    at an unchanged catch rate, for 1.5&nbsp;t of propellant. The tuning rule did not anticipate
+    this: on a tuning set with three engine failures the pad-strike difference was 1 against 0.
+    A rule that weights pad safety, the outcome that matters most for a tower catch, selects the
+    capped MPC. The engine-out reserve does not survive full dispersions with 45&nbsp;t: with about
+    1&nbsp;t of slack it either declines catches it cannot afford (129 safe aborts) or runs dry in
+    the terminal descent (21), since a 2% thrust bias moves its propellant estimate by about
+    1&nbsp;t (<a href="#sec-cost">&sect;5.7</a>).</p>
+  <figure class="wide" id="fig-outcomes">
+    <img src="img:outcomes.png" alt="Three panels: stacked outcome bars per controller, the reasons for misses, and histograms of propellant remaining.">
+    <figcaption><b>Figure 4.</b> Dispersed Monte Carlo, 300 flights per controller. (a) Outcomes.
+      (b) The reason recorded for each miss. (c) Propellant remaining in caught flights.</figcaption>
+  </figure>
+  <figure id="fig-precision">
+    <img src="img:precision.png" alt="Scatter plots of lateral speed and descent rate against distance from the catch point for caught flights, with the tolerance box.">
+    <figcaption><b>Figure 5.</b> State at capture for caught flights; dashed boxes are the
+      capture tolerances. The MPC variants cluster within 10&nbsp;cm of the catch point.</figcaption>
+  </figure>
+
+  <h3 id="sec-eo">5.4&ensp;Engine-failure timing</h3>
+  <p>One engine fails at a single moment between ignition and 16&nbsp;s, in calm air with the
+    nominal vehicle (<a href="#tab-eo">Table&nbsp;6</a>, <a href="#fig-eo">Figure&nbsp;6</a>). The
+    tuned MPC saves the booster when the failure comes early, when 13 engines can absorb it, or
+    after about 11.5&nbsp;s, when little braking remains. In between it correctly finds that no
+    catch exists, but its aborts come down near the pad in 13 of 33 cases: braking late, it is
+    lower and faster than the baseline at the same moment (72&nbsp;m lower at 6&nbsp;s) and has less
+    time to steer clear. The baseline brakes earlier, so its aborts usually clear the pad, but it
+    rarely saves the booster. With the engine-out reserve the booster survives a failure at any
+    time except 1.0 and 2.0&nbsp;s (both safe misses). It does so by braking harder while 13 engines
+    are available and descending more slowly on three, at a cost of about 5&nbsp;t of propellant:
+    it lands with 0.5&nbsp;t instead of 5.5&nbsp;t.</p>
+  <div class="tbl mid" id="tab-eo">
+    <table class="bt res">
+      <caption><b>Table 6.</b> One engine fails at each of 33 times from 0 to 16&nbsp;s (calm air, nominal vehicle).</caption>
+      <thead><tr><th>Controller</th><th class="n">Caught</th><th class="n">Safe miss</th><th class="n">Pad strike</th><th class="n">Propellant left when caught</th></tr></thead>
+      <tbody>
+        <tr><td>Convex MPC + engine-out reserve</td><td class="n"><b>32</b></td><td class="n">1</td><td class="n"><b>0</b></td><td class="n">0.5&nbsp;t</td></tr>
+        <tr><td>Convex MPC + approach cap</td><td class="n">13</td><td class="n">16</td><td class="n">4</td><td class="n">2.7&nbsp;t</td></tr>
+        <tr><td>Convex MPC (tuned)</td><td class="n">12</td><td class="n">8</td><td class="n">13</td><td class="n">5.5&nbsp;t</td></tr>
+        <tr><td>Baseline</td><td class="n">4</td><td class="n">24</td><td class="n">5</td><td class="n">3.9&nbsp;t</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <figure class="mid" id="fig-eo">
+    <img src="img:engineout.png" alt="Outcome for an engine failure at each moment from 0 to 16 s, for four controllers.">
+    <figcaption><b>Figure 6.</b> Outcome against the time of a single engine failure. The dotted
+      line marks the switch from 13 to 3 engines.</figcaption>
+  </figure>
+
+  <h3 id="sec-wind">5.5&ensp;Crosswind</h3>
+  <p>Both controllers fail between 20 and 25&nbsp;m/s of mean wind
+    (<a href="#tab-wind">Table&nbsp;7</a>, <a href="#fig-wind">Figure&nbsp;7</a>), the MPC later than the
+    baseline. At 25&nbsp;m/s the wind pushes the 71&nbsp;m booster sideways at about
+    0.6&nbsp;m/s&sup2; plus gusts, more than the terminal descent's 2.7&deg; tilt can correct
+    (about 0.5&nbsp;m/s&sup2;). That limit is set by the catch geometry, not by either guidance law.</p>
+  <div class="tbl mid" id="tab-wind">
+    <table class="bt res">
+      <caption><b>Table 7.</b> Catch rate (%) against mean wind speed, 12 flights per speed, no engine failures.</caption>
+      <thead><tr><th>Mean wind (m/s)</th><th class="n">0</th><th class="n">5</th><th class="n">10</th><th class="n">15</th><th class="n">20</th><th class="n">25</th><th class="n">30</th></tr></thead>
+      <tbody>
+        <tr><td>Convex MPC</td><td class="n">100</td><td class="n">100</td><td class="n">100</td><td class="n">100</td><td class="n"><b>100</b></td><td class="n">33</td><td class="n">8</td></tr>
+        <tr><td>Baseline</td><td class="n">100</td><td class="n">100</td><td class="n">92</td><td class="n">92</td><td class="n">67</td><td class="n">17</td><td class="n">0</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <figure id="fig-wind">
+    <img src="img:wind.png" alt="Catch rate against mean wind speed for both controllers, with shaded 95% intervals.">
+    <figcaption><b>Figure 7.</b> Catch rate against mean wind speed with gusts; shading shows
+      95% intervals.</figcaption>
+  </figure>
+
+  <h3 id="sec-basin">5.6&ensp;Capture basin</h3>
+  <p>Shifting the ignition point by up to &plusmn;200&nbsp;m towards or away from the tower and
+    &plusmn;300&nbsp;m in altitude (143 points, calm air), the MPC catches 127 with no pad strikes;
+    the baseline catches 86 with 25 pad strikes (<a href="#fig-basin">Figure&nbsp;8</a>). The fixed
+    braking profile cannot absorb a low or far-offshore start and discovers the problem at the
+    gate, where an abort is too late to clear the pad. The MPC re-plans from wherever it is,
+    and where no catch exists its planner reports this seconds earlier, including when the
+    remaining propellant could not cover the terminal descent.</p>
+  <figure class="wide" id="fig-basin">
+    <img src="img:basin.png" alt="Grid of ignition-point shifts coloured by outcome for the MPC and the baseline.">
+    <figcaption><b>Figure 8.</b> Capture basin over shifts of the ignition point (calm air). Numbers
+      give the propellant remaining (t) in caught flights; the outlined cell is the nominal
+      ignition point.</figcaption>
+  </figure>
+
+  <h3 id="sec-cost">5.7&ensp;The propellant cost of engine-out tolerance</h3>
+  <p>The same 40 dispersed flights (20 with an engine failure at a random time) were flown with
+    45, 50 and 55&nbsp;t of landing propellant (<a href="#tab-prop">Table&nbsp;8</a>,
+    <a href="#fig-prop">Figure&nbsp;9</a>). About 5&nbsp;t more (+11%) makes single-engine-out
+    tolerance robust to the dispersions: 19 of 20 failures survived with no pad strikes (95%
+    interval roughly 76&ndash;99%). Extra propellant alone does nothing for the tuned MPC, which
+    catches 4 of 20 at every level. It is the braking-reserve constraint that converts propellant
+    into engine-out safety, by spending it on braking while 13 engines are available.</p>
+  <div class="tbl mid" id="tab-prop">
+    <table class="bt res">
+      <caption><b>Table 8.</b> Catches out of 20 against landing propellant (full dispersions).</caption>
+      <thead><tr><th>Landing propellant</th><th class="n">Reserve MPC, no failure</th><th class="n">Reserve MPC, one engine fails</th><th class="n">Tuned MPC, one engine fails</th></tr></thead>
+      <tbody>
+        <tr><td>45&nbsp;t</td><td class="n">10</td><td class="n">7 (3 pad strikes)</td><td class="n">4 (7 pad strikes)</td></tr>
+        <tr><td>50&nbsp;t</td><td class="n"><b>20</b></td><td class="n"><b>19 (no pad strikes)</b></td><td class="n">4 (6 pad strikes)</td></tr>
+        <tr><td>55&nbsp;t</td><td class="n">20</td><td class="n">19 (no pad strikes)</td><td class="n">4 (6 pad strikes)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <figure id="fig-prop">
+    <img src="img:eoprop.png" alt="Catch rate against landing propellant for the MPC with and without the engine-out reserve, with and without an engine failure.">
+    <figcaption><b>Figure 9.</b> Catch rate against landing propellant, with (solid) and without
+      (dashed) an engine failure; 20 flights per point, shading shows 95% intervals.</figcaption>
+  </figure>
+
+  <h2 class="sec" id="sec-mech"><span class="num">6</span>Failure mechanisms found in closed loop</h2>
+  <p>Each of the following was a failure in an earlier version, found by tracing individual
+    flights. They are properties of the problem rather than incidental bugs, and they are likely
+    the most transferable part of the study.</p>
+  <ol class="mech">
+    <li><b>Fuel-optimal plans ride every limit at once.</b> The optimum brakes as late as possible
+      at full thrust <em>and</em> full tilt. A thrust margin alone left the plan on the tilt limit,
+      where any lateral error made it infeasible; margins on both (8%, 2&deg;) were needed.</li>
+    <li><b>Actuator lag against bang-bang plans.</b> The engines' 0.25&nbsp;s response to a
+      max&ndash;min&ndash;max thrust plan lost 1&ndash;3&nbsp;m/s of braking at every switch, always in
+      the dangerous direction. Commanding the plan one lag early, modelling the engine-switch
+      tail-off and entering the terminal descent one lag early removed the loss.</li>
+    <li><b>The throttle floor makes over-braking a trap.</b> Clipping an oversized lateral command by
+      rotating the thrust vector turned the excess into braking and stalled the booster 12&nbsp;m
+      above the arms. The lateral component must be trimmed instead.</li>
+    <li><b>The estimator must match what the planner needs.</b> Explaining a thrust shortfall as
+      extra mass reproduces the accelerations but corrupts the planner's propellant budget by about
+      10&nbsp;t, producing false declarations that the catch was impossible. The planner now receives
+      the engine thrust scaled by the estimated effectiveness.</li>
+    <li><b>A planner must agree with itself.</b> Re-planning from a point on its own plan, under the
+      same rules, was infeasible: drag entered by successive passes and the first pass ignored it,
+      although drag supplies up to 8&nbsp;m/s&sup2; of braking. This one consistency check removed
+      most of the closed-loop propellant loss (about 2&nbsp;t) and most false aborts.</li>
+    <li><b>Constraints checked at nodes leak between them.</b> Time-indexed rules checked only at
+      grid points let plans cross between points; the next plan, on a different grid, found the
+      same timing infeasible and slipped its arrival (about 0.5&nbsp;t per half second). A node on
+      every rule boundary fixed this.</li>
+    <li><b>Infeasibility is a useful certificate only if the model is honest.</b> Aborting when the
+      planner finds no solution decides seconds earlier than a heuristic could, but every modelling
+      gap above first appeared as a false abort. The plan must also budget the propellant for the
+      phase it does not plan, the terminal descent, or it will succeed on paper and run dry over
+      the arms.</li>
+  </ol>
+
+  <h2 class="sec" id="sec-limits"><span class="num">7</span>Limitations</h2>
+  <ul>
+    <li><b>Point mass.</b> The thrust direction stands in for attitude: there are no rotational
+      dynamics, gimbal limits, grid fins, slosh, flex or aerodynamic moments. The tower-strike check
+      uses the centre of mass plus the booster radius, consistent with a body held near upright
+      while the engines gimbal. The replay in <a href="#fig-replay">Figure&nbsp;1</a> draws the body
+      leaning about a third of the way into the thrust, with the engine plumes deflected for the
+      remainder; this is a rendering choice, not simulated attitude.</li>
+    <li><b>Public estimates.</b> Masses, propellant, drag coefficients, tower geometry and
+      tolerances are estimates. Absolute catch rates should not be read as predictions for the real
+      vehicle; the comparisons, mechanisms and trade-offs are the result.</li>
+    <li><b>Environment.</b> Constant air density and a uniform mean wind with Ornstein&ndash;Uhlenbeck
+      gusts; no shear or tower wake.</li>
+    <li><b>Engines.</b> A single total thrust with first-order lag. A real engine failure would add a
+      thrust transient and a moment, and detection is assumed to be instantaneous.</li>
+    <li><b>Computation.</b> 0.1&ndash;0.3&nbsp;s per plan in Python; flight software would use an
+      embedded solver.</li>
+    <li><b>Sample sizes.</b> 40 flights per tuning setting and 12 per wind speed; intervals are wide
+      and are reported.</li>
+  </ul>
+
+  <h2 class="sec" id="sec-concl"><span class="num">8</span>Conclusion</h2>
+  <p>In this model, convex fuel-optimal guidance outperforms a tuned braking heuristic on every
+    nominal measure of a tower catch: catch rate, precision, propellant margin, crosswind tolerance
+    and capture basin. The property that saves propellant, braking late, also leaves less room to
+    abort after a mid-burn engine failure, which a 10&nbsp;m/s approach cap largely restores at no
+    cost in catch rate. Single-engine-out tolerance is available as one additional convex constraint
+    plus about 5&nbsp;t of landing propellant. The throttle floor, rather than the guidance law,
+    shapes the final seconds of the catch.</p>
+
+  <h2 class="sec" id="sec-refs">References</h2>
+  <ol class="refs">
+    <li id="ref-1">B. A&ccedil;&#305;kme&#351;e and S. R. Ploen. Convex programming approach to powered descent guidance for Mars landing. <em>Journal of Guidance, Control, and Dynamics</em>, 30(5), 2007.</li>
+    <li id="ref-2">B. A&ccedil;&#305;kme&#351;e, J. M. Carson III and L. Blackmore. Lossless convexification of nonconvex control bound and pointing constraints of the soft landing optimal control problem. <em>IEEE Transactions on Control Systems Technology</em>, 21(6), 2013.</li>
+    <li id="ref-3">L. Blackmore. Autonomous precision landing of space rockets. <em>The Bridge</em>, 46(4), 2016.</li>
+    <li id="ref-4">S. Diamond and S. Boyd. CVXPY: a Python-embedded modeling language for convex optimization. <em>Journal of Machine Learning Research</em>, 17(83), 2016.</li>
+    <li id="ref-5">P. J. Goulart and Y. Chen. Clarabel: an interior-point solver for conic programs with quadratic objectives. arXiv:2405.12762, 2024.</li>
+    <li id="ref-6">E. B. Wilson. Probable inference, the law of succession, and statistical inference. <em>Journal of the American Statistical Association</em>, 22(158), 1927.</li>
+    <li id="ref-7">Wikipedia, &ldquo;SpaceX Raptor&rdquo; and &ldquo;SpaceX Super Heavy&rdquo;, accessed 2026. Public vehicle figures.</li>
+  </ol>
+
+  <h2 class="sec" id="app-repro"><span class="num">A</span>Reproducibility</h2>
+  <p>All results come from the code accompanying this report. The guidance tests take about 45&nbsp;s;
+    the full evaluation takes about 1.5&nbsp;h on four laptop cores.</p>
+<pre><code>pip install numpy scipy cvxpy clarabel matplotlib pytest
+python -m pytest tests/ -q                       # 14 tests
+bash scripts/run_all.sh 4                        # Monte Carlo campaigns -> results/
+python scripts/summarize.py results/mc_random.jsonl
+python scripts/validate_guidance.py              # Table 2
+python scripts/make_figures.py                   # Figures 2-9
+python scripts/export_replay.py &amp;&amp; python scripts/build_replay.py   # this page</code></pre>

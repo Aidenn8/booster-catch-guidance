@@ -1,270 +1,336 @@
-<title>Booster Catch Replay</title>
+<title>Catching Super Heavy</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: a mission-replay console. Scenario cards on top, a cinematic 3D viewport with a
-   plain-language phase caption and video-style controls, clickable telemetry cards below.
-   Steel neutrals; blue = convex MPC, amber = baseline, teal = MPC with the engine-out reserve. */
+/* A research project page: serif body text in a single reading column, wide figures that
+   break out of it, booktabs tables, numbered sections. Sans is reserved for interface
+   controls and figure panels. Controller colours follow the Okabe-Ito palette, as in the
+   static figures: blue = convex MPC, orange = baseline, purple = MPC with the engine-out reserve. */
 :root {
-  --bg: #f2f3f5; --panel: #ffffff; --ink: #12151a; --muted: #5a6371; --line: #dadde2; --soft: #f6f7f9;
-  --mpc: #2563eb; --base: #d26a06; --eo: #0f8a76; --ok: #15803d; --warn: #6b7280; --bad: #c81e1e;
-  --chip: #eceef2; --focus: #2563eb;
-  --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
-  --body: "Archivo", "Helvetica Neue", Arial, sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --paper: #ffffff; --ink: #1b1b1b; --ink2: #3b3b3b; --muted: #6e6e6e; --rule: #d8d8d8; --rule-strong: #1b1b1b;
+  --soft: #f5f5f3; --link: #1d4f9c;
+  --mpc: #0072B2; --base: #E69F00; --eo: #CC79A7; --ok: #008C66; --miss: #7d7d7d; --bad: #C8501A;
+  --serif: "Source Serif 4", "Source Serif Pro", Georgia, "Times New Roman", serif;
+  --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --text: 690px; --mid: 860px; --wide: 1060px;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #0c0f13; --panel: #151920; --ink: #e9ecf1; --muted: #9aa3b1; --line: #282e38; --soft: #11151b;
-  --mpc: #6b9bff; --base: #f59a3a; --eo: #34c3a8; --ok: #4ade80; --warn: #9ca3af; --bad: #f87171;
-  --chip: #1f252f; --focus: #6b9bff; color-scheme: dark } }
+  --paper: #151515; --ink: #e9e7e2; --ink2: #cdcac4; --muted: #9b9892; --rule: #383838; --rule-strong: #d9d6d0;
+  --soft: #1e1e1e; --link: #8db2f0;
+  --mpc: #56B4E9; --base: #E69F00; --eo: #DA9BC6; --ok: #3cc59b; --miss: #9a9a9a; --bad: #ff8a4c; color-scheme: dark } }
 :root[data-theme="dark"] {
-  --bg: #0c0f13; --panel: #151920; --ink: #e9ecf1; --muted: #9aa3b1; --line: #282e38; --soft: #11151b;
-  --mpc: #6b9bff; --base: #f59a3a; --eo: #34c3a8; --ok: #4ade80; --warn: #9ca3af; --bad: #f87171;
-  --chip: #1f252f; --focus: #6b9bff; color-scheme: dark }
+  --paper: #151515; --ink: #e9e7e2; --ink2: #cdcac4; --muted: #9b9892; --rule: #383838; --rule-strong: #d9d6d0;
+  --soft: #1e1e1e; --link: #8db2f0;
+  --mpc: #56B4E9; --base: #E69F00; --eo: #DA9BC6; --ok: #3cc59b; --miss: #9a9a9a; --bad: #ff8a4c; color-scheme: dark }
 * { box-sizing: border-box }
 [hidden] { display: none !important }
-body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5;
-  padding-inline: 16px; padding-block: 22px 44px }
-.wrap { max-width: 1200px; margin: 0 auto; display: grid; gap: 14px }
-header { display: grid; gap: 6px }
-h1 { font-family: var(--display); font-stretch: 112%; font-weight: 760; font-size: clamp(1.55rem, 3.2vw, 2.2rem);
-  letter-spacing: -0.012em; margin: 0; text-wrap: balance }
-.lede { color: var(--muted); max-width: 74ch; margin: 0 }
-.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.84rem; color: var(--muted) }
-.legend span { display: inline-flex; align-items: center; gap: 6px }
-.legend i, .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none }
-button { font-family: inherit }
-button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px }
+html { -webkit-text-size-adjust: 100% }
+body { background: var(--paper); color: var(--ink); font: 400 17px/1.62 var(--serif); margin: 0;
+  padding: 44px 16px 72px; font-variant-numeric: lining-nums; -webkit-font-smoothing: antialiased }
+button { font-family: var(--sans) }
+button:focus-visible, input:focus-visible, [tabindex]:focus-visible, a:focus-visible { outline: 2px solid var(--link); outline-offset: 2px }
+a { color: var(--link); text-decoration-thickness: 1px; text-underline-offset: 2px }
+a.cite { text-decoration: none }
+a.cite:hover { text-decoration: underline }
+.paper > * { max-width: var(--text); margin-left: auto; margin-right: auto }
+.paper > .mid { max-width: var(--mid) }
+.paper > .wide { max-width: var(--wide) }
+p { margin-top: 0; margin-bottom: 14px }
+ul, ol { padding-left: 1.3em; margin-top: 0; margin-bottom: 14px }
+li { margin-bottom: 6px }
+em { font-style: italic }
+b { font-weight: 600 }
 
-/* ---- scenario cards */
-.scenarios { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px }
-.scn { text-align: left; display: grid; gap: 6px; align-content: start; padding: 10px 12px; border-radius: 12px; cursor: pointer;
-  border: 1px solid var(--line); background: var(--panel); color: var(--ink); min-width: 0 }
-.scn:hover { border-color: var(--muted) }
-.scn[aria-selected="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink) }
-.scn b { font: 700 0.86rem var(--display); font-stretch: 102% }
-.scn .res { display: flex; gap: 5px; align-items: center }
-.res .dot.ok { background: var(--ok) } .res .dot.miss { background: var(--warn) } .res .dot.bad { background: var(--bad) }
-.res .dot { width: 10px; height: 10px; box-shadow: 0 0 0 2px var(--panel), 0 0 0 3px var(--c) }
-.story { margin: -4px 0 0; color: var(--muted); font-size: 0.92rem; display: flex; flex-wrap: wrap; gap: 4px 14px; justify-content: space-between }
-.story #story { color: var(--ink) }
-.key { font-size: 0.8rem; display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap }
+/* ---- title block */
+.titleblock { text-align: center; margin-bottom: 30px; max-width: 900px }
+.kicker { font: 500 12px var(--sans); letter-spacing: .09em; text-transform: uppercase; color: var(--muted); margin: 0 0 14px }
+h1 { font: 600 clamp(1.65rem, 3.4vw, 2.3rem)/1.22 var(--serif); letter-spacing: -0.012em; margin: 0 auto 16px; text-wrap: balance }
+.authors { font-size: 1.08rem; margin: 0 }
+.affil { font-style: italic; color: var(--muted); margin: 2px 0 16px; font-size: 0.97rem }
+.links { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; font: 500 13px var(--sans) }
+.links a { color: var(--ink); text-decoration: none; border: 1px solid var(--rule); border-radius: 3px; padding: 5px 12px }
+.links a:hover { border-color: var(--ink) }
 
-/* ---- stage */
-.stage { position: relative; border-radius: 14px; overflow: hidden; aspect-ratio: 16 / 9; max-height: 76vh;
-  width: 100%; background: #0a0d12; box-shadow: 0 1px 0 var(--line), 0 18px 40px -24px rgba(0,0,0,.55) }
+/* ---- abstract */
+.abstract { margin-bottom: 36px; max-width: 640px !important }
+.abstract h2 { font: 600 12px var(--sans); letter-spacing: .12em; text-transform: uppercase; text-align: center; margin: 0 0 8px }
+.abstract p { font-size: 16px; line-height: 1.6; text-align: justify; hyphens: auto; -webkit-hyphens: auto; margin: 0 }
+
+/* ---- sections */
+h2.sec { font: 600 1.42rem/1.3 var(--serif); margin-top: 52px; margin-bottom: 14px; letter-spacing: -0.005em }
+h2.sec .num { display: inline-block; min-width: 1.7em; color: var(--ink) }
+h3 { font: 600 1.1rem/1.35 var(--serif); margin-top: 30px; margin-bottom: 8px }
+.eq { overflow-x: auto; overflow-y: hidden; margin-top: 4px; margin-bottom: 12px }
+.eq mjx-container { margin: 6px 0 !important }
+kbd { font: 500 0.78em var(--mono); border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: 3px; padding: 0 4px; background: var(--soft) }
+code { font: 0.86em var(--mono) }
+pre code { font: inherit }
+pre { font: 13px/1.55 var(--mono); background: var(--soft); border: 1px solid var(--rule); border-radius: 3px; padding: 12px 14px; overflow-x: auto; margin: 0 auto 14px }
+
+/* ---- figures and tables */
+figure { margin-top: 30px; margin-bottom: 32px }
+figure img { display: block; width: 100%; height: auto; background: #fff }
+figcaption { font-size: 14.5px; line-height: 1.5; color: var(--ink2); margin-top: 10px }
+figcaption b, caption b { color: var(--ink) }
+.tbl { overflow-x: auto; margin-top: 24px; margin-bottom: 26px }
+table.bt { border-collapse: collapse; width: 100%; font-size: 14.5px; line-height: 1.4; font-variant-numeric: tabular-nums lining-nums;
+  border-top: 1.5px solid var(--rule-strong); border-bottom: 1.5px solid var(--rule-strong) }
+table.bt caption { caption-side: top; text-align: left; font-size: 14.5px; color: var(--ink2); padding-bottom: 8px; line-height: 1.5 }
+table.bt th { font-weight: 600; text-align: left; padding: 7px 10px 5px; border-bottom: 0.75px solid var(--rule-strong); vertical-align: bottom }
+table.bt td { padding: 4px 10px; vertical-align: top }
+table.bt tbody tr:first-child td { padding-top: 7px }
+table.bt tbody tr:last-child td { padding-bottom: 7px }
+table.bt .n { text-align: right; white-space: nowrap }
+table.bt.res td:first-child { white-space: nowrap }
+ol.mech li { margin-bottom: 10px }
+ol.refs { font-size: 15px; line-height: 1.5; padding-left: 2.2em }
+ol.refs li { margin-bottom: 8px; padding-left: 0.2em }
+ol.refs li::marker { content: "[" counter(list-item) "]\2002"; color: var(--muted) }
+.colophon { margin-top: 56px; padding-top: 14px; border-top: 1px solid var(--rule); font: 13px/1.55 var(--sans); color: var(--muted) }
+.colophon p { margin-bottom: 6px }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) figure img { padding: 10px; border-radius: 2px } }
+:root[data-theme="dark"] figure img { padding: 10px; border-radius: 2px }
+
+/* ---- Figure 1: the interactive replay */
+.interactive { margin-top: 8px }
+.figtabs { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--rule); font: 500 13.5px var(--sans) }
+.scn { appearance: none; background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: 8px 13px 7px;
+  color: var(--muted); cursor: pointer; font: inherit; white-space: nowrap }
+.scn:hover { color: var(--ink) }
+.scn[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink) }
+.scn-desc { font-style: italic; font-size: 15px; color: var(--ink2); margin: 9px 0 10px }
+.stage { position: relative; overflow: hidden; aspect-ratio: 16 / 9; max-height: 74vh; width: 100%; background: #0b0d10 }
 #view { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none }
-.hud { position: absolute; z-index: 2; left: 16px; top: 14px; right: 14px; display: flex; justify-content: space-between;
-  align-items: flex-start; gap: 12px; pointer-events: none; color: #f2f5f9 }
-.hud-l { display: grid; gap: 6px; min-width: 0 }
-.phase { font: 750 clamp(15px, 2vw, 20px) var(--display); font-stretch: 106%; text-shadow: 0 1px 4px rgba(0,0,0,.75); letter-spacing: -0.005em }
-.phase small { display: block; font: 500 12px var(--body); opacity: .82; letter-spacing: 0; margin-top: 1px }
-.chips { display: flex; gap: 6px; flex-wrap: wrap }
-.chip { font: 600 11px var(--mono); padding: 3px 9px; border-radius: 999px; background: rgba(8,12,18,.58);
-  border: 1px solid rgba(255,255,255,.14); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-variant-numeric: tabular-nums }
-.chip.alert { background: rgba(200,30,30,.85); border-color: rgba(255,255,255,.3) }
-.chip svg { width: 12px; height: 12px }
-.seg { display: inline-flex; pointer-events: auto; padding: 3px; gap: 2px; border-radius: 999px; background: rgba(8,12,18,.58);
-  border: 1px solid rgba(255,255,255,.16); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px) }
-.seg button { font: 600 12px var(--body); padding: 6px 12px; border-radius: 999px; border: 0; background: transparent;
-  color: rgba(240,244,249,.82); cursor: pointer; white-space: nowrap }
-.seg button:hover { color: #fff }
-.seg button[aria-pressed="true"] { background: #f4f6f9; color: #0d1117 }
-.tag { position: absolute; left: 0; top: 0; z-index: 1; display: flex; align-items: center; gap: 6px;
-  font: 600 11px var(--mono); padding: 3px 9px 3px 7px; border-radius: 999px; background: rgba(8,12,18,.72);
-  color: #fff; border: 1px solid rgba(255,255,255,.18); pointer-events: none; white-space: nowrap;
+.ov { position: absolute; z-index: 2; left: 14px; top: 11px; right: 14px; pointer-events: none; color: #f3f2ee;
+  font: 500 13px/1.45 var(--sans); text-shadow: 0 1px 3px rgba(0,0,0,.85) }
+.ov .phase { font-weight: 600; font-size: 14px }
+.ov .phase .t { font: 500 13px var(--mono); margin-right: 10px; opacity: .9; font-variant-numeric: tabular-nums }
+.ov .meta { display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 12px; opacity: .88 }
+.ov .meta svg { width: 11px; height: 11px; vertical-align: -1px; margin-left: 3px }
+.ov .meta .alert { color: #ffab7a; opacity: 1 }
+.tag { position: absolute; left: 0; top: 0; z-index: 1; font: 500 11px var(--sans); color: #fff; padding: 1px 6px 1px 5px;
+  background: rgba(10,12,15,.55); border-left: 3px solid var(--c); pointer-events: none; white-space: nowrap;
   font-variant-numeric: tabular-nums; will-change: transform }
-.tag i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c) }
 .bigplay { position: absolute; z-index: 3; left: 50%; top: 50%; transform: translate(-50%, -50%); display: inline-flex; align-items: center;
-  gap: 10px; padding: 14px 22px 14px 18px; border-radius: 999px; border: 0; cursor: pointer; background: rgba(244,246,249,.95);
-  color: #0d1117; font: 700 16px var(--display); font-stretch: 104%; box-shadow: 0 12px 34px rgba(0,0,0,.45) }
-.bigplay svg { width: 18px; height: 18px }
-.bigplay:hover { background: #fff }
-.toast { position: absolute; z-index: 3; left: 50%; bottom: 84px; transform: translate(-50%, 6px); padding: 9px 18px; border-radius: 999px;
-  color: #fff; font: 700 14px var(--display); font-stretch: 105%; opacity: 0; transition: opacity .35s, transform .35s;
-  pointer-events: none; white-space: nowrap; box-shadow: 0 8px 24px rgba(0,0,0,.35) }
-.toast.show { opacity: 1; transform: translate(-50%, 0) }
-.toast.ok { background: rgba(21,128,61,.94) } .toast.miss { background: rgba(75,85,99,.94) } .toast.bad { background: rgba(200,30,30,.94) }
-.pad { position: absolute; z-index: 2; right: 14px; bottom: 84px; display: grid; grid-template-columns: repeat(3, 30px);
-  grid-template-rows: repeat(3, 30px) 6px 30px; gap: 3px }
-.pad button { width: 30px; height: 30px; padding: 0; border-radius: 8px; border: 1px solid rgba(255,255,255,.16); background: rgba(8,12,18,.6);
-  color: #eef2f7; display: grid; place-items: center; cursor: pointer; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-  touch-action: none; user-select: none; -webkit-user-select: none }
-.pad button:hover { background: rgba(34,42,54,.8) }
-.pad button:active { background: rgba(244,246,249,.9); color: #0d1117 }
-.pad svg { width: 14px; height: 14px; pointer-events: none }
+  gap: 9px; padding: 10px 18px 10px 15px; border: 1px solid rgba(255,255,255,.6); border-radius: 2px; background: rgba(10,12,15,.5);
+  color: #fff; font: 500 14px var(--sans); cursor: pointer; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px) }
+.bigplay svg { width: 13px; height: 13px }
+.bigplay:hover { background: rgba(10,12,15,.75) }
+.pad { position: absolute; z-index: 2; right: 12px; bottom: 12px; display: grid; grid-template-columns: repeat(3, 27px);
+  grid-template-rows: repeat(3, 27px) 5px 27px; gap: 3px }
+.pad button { width: 27px; height: 27px; padding: 0; border-radius: 2px; border: 1px solid rgba(255,255,255,.32); background: rgba(10,12,15,.45);
+  color: #eceae5; display: grid; place-items: center; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none }
+.pad button:hover { background: rgba(10,12,15,.72); border-color: rgba(255,255,255,.6) }
+.pad button:active { background: rgba(245,244,240,.9); color: #111 }
+.pad svg { width: 12px; height: 12px; pointer-events: none }
 .pad .up { grid-column: 2; grid-row: 1 } .pad .left { grid-column: 1; grid-row: 2 } .pad .reset { grid-column: 2; grid-row: 2 }
 .pad .right { grid-column: 3; grid-row: 2 } .pad .down { grid-column: 2; grid-row: 3 }
 .pad .zin { grid-column: 1; grid-row: 5 } .pad .zout { grid-column: 3; grid-row: 5 }
-@media (pointer: coarse) { .pad { display: none } }
-.hint { position: absolute; z-index: 2; left: 50%; top: 58%; transform: translateX(-50%); font: 600 12px var(--body); color: #fff; white-space: nowrap;
-  padding: 6px 12px; border-radius: 999px; background: rgba(8,12,18,.55); pointer-events: none; transition: opacity .6s }
-.bar { position: absolute; z-index: 2; left: 0; right: 0; bottom: 0; padding: 34px 16px 13px; display: flex; align-items: center; gap: 12px;
-  background: linear-gradient(rgba(5,8,12,0), rgba(5,8,12,.84)) }
-.play { width: 40px; height: 40px; flex: none; border-radius: 50%; border: 0; background: #f4f6f9; color: #0d1117;
-  display: grid; place-items: center; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.35) }
-.play svg { width: 16px; height: 16px }
-.time { font: 600 12px var(--mono); color: #eef2f7; min-width: 13ch; font-variant-numeric: tabular-nums; white-space: nowrap }
-.time span { opacity: .6 }
-.track { position: relative; flex: 1 1 auto; height: 32px; display: flex; align-items: center; min-width: 0 }
-.track input { -webkit-appearance: none; appearance: none; width: 100%; height: 5px; border-radius: 5px; margin: 0;
-  background: linear-gradient(90deg, #f4f6f9 var(--p, 0%), rgba(255,255,255,.22) var(--p, 0%)); cursor: pointer }
-.track input::-webkit-slider-thumb { -webkit-appearance: none; width: 15px; height: 15px; border-radius: 50%; background: #fff;
-  box-shadow: 0 0 0 4px rgba(255,255,255,.2) }
-.track input::-moz-range-thumb { width: 15px; height: 15px; border: 0; border-radius: 50%; background: #fff }
+@media (pointer: coarse) { .pad { display: none } .hint { max-width: calc(100% - 28px) } }
+.hint { position: absolute; z-index: 2; left: 14px; bottom: 11px; font: 400 12px var(--sans); color: rgba(255,255,255,.86);
+  text-shadow: 0 1px 3px rgba(0,0,0,.85); pointer-events: none; transition: opacity .6s; max-width: calc(100% - 130px) }
+.toolbar { display: grid; gap: 8px; padding: 10px 0 11px; border-bottom: 1px solid var(--rule); font: 500 12.5px var(--sans) }
+.transport { display: flex; align-items: center; gap: 12px; min-width: 0 }
+.play { width: 32px; height: 32px; flex: none; border-radius: 2px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper);
+  display: grid; place-items: center; cursor: pointer }
+.play svg { width: 13px; height: 13px }
+.time { font: 500 12.5px var(--mono); color: var(--ink); min-width: 13.5ch; white-space: nowrap; font-variant-numeric: tabular-nums }
+.time span { color: var(--muted) }
+.track { position: relative; flex: 1 1 auto; height: 26px; display: flex; align-items: center; min-width: 0 }
+.track input { -webkit-appearance: none; appearance: none; width: 100%; height: 3px; margin: 0; border-radius: 0; cursor: pointer;
+  background: linear-gradient(90deg, var(--ink) var(--p, 0%), var(--rule) var(--p, 0%)) }
+.track input::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%; background: var(--ink); border: 2px solid var(--paper);
+  box-shadow: 0 0 0 1px var(--ink) }
+.track input::-moz-range-thumb { width: 11px; height: 11px; border-radius: 50%; background: var(--ink); border: 2px solid var(--paper) }
 .marks { position: absolute; inset: 0; pointer-events: none }
-.mark { position: absolute; top: 4px; width: 8px; height: 8px; border-radius: 50%; transform: translateX(-4px); border: 2px solid rgba(8,12,18,.8) }
-.mark.big { top: 3px; width: 2px; height: 10px; border: 0; border-radius: 1px; transform: translateX(-1px); background: rgba(255,255,255,.7) }
-.bar .seg { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.12); padding: 2px }
-.bar .seg button { font: 600 11px var(--mono); padding: 4px 8px }
-
-/* ---- telemetry */
-.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 12px }
-.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 13px 15px 12px;
-  display: grid; gap: 10px; min-width: 0; cursor: pointer; text-align: left; color: var(--ink) }
-.card:hover { border-color: var(--muted) }
-.card.focus { border-color: var(--c); box-shadow: inset 0 0 0 1px var(--c) }
-.card h2 { margin: 0; font: 700 0.96rem var(--display); font-stretch: 104%; display: flex; align-items: center; gap: 8px; min-width: 0 }
-.card h2 i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); flex: none }
-.card h2 .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
-.watch { font: 600 0.66rem var(--body); letter-spacing: .06em; text-transform: uppercase; color: var(--c); flex: none }
-.status { margin-left: auto; flex: none; font: 600 0.68rem var(--body); letter-spacing: .06em; text-transform: uppercase;
-  padding: 3px 9px; border-radius: 999px; background: var(--chip); color: var(--muted); white-space: nowrap }
-.status.ok { background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok) }
-.status.miss { background: var(--chip); color: var(--warn) }
-.status.bad { background: color-mix(in srgb, var(--bad) 16%, transparent); color: var(--bad) }
-.big3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px }
-.k { font-size: 0.68rem; letter-spacing: .05em; text-transform: uppercase; color: var(--muted) }
-.v { font: 500 1.15rem var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap }
-.v small { font-size: 0.74rem; color: var(--muted) }
-.fuel { height: 5px; border-radius: 5px; background: var(--chip); overflow: hidden }
-.fuel b { display: block; height: 100%; width: 100%; background: var(--c); border-radius: 5px }
-.more { font: 500 0.78rem var(--mono); color: var(--muted); font-variant-numeric: tabular-nums }
-.result { font-size: 0.86rem; color: var(--muted); min-height: 2.6em }
-.result b { font-weight: 700 }
-.result.ok b { color: var(--ok) } .result.miss b { color: var(--warn) } .result.bad b { color: var(--bad) }
-details.chartbox { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; min-width: 0 }
-details.chartbox summary { cursor: pointer; font: 600 0.88rem var(--body); color: var(--ink) }
-details.chartbox p { margin: 6px 0 4px; color: var(--muted); font-size: 0.84rem }
-#chart { width: 100%; height: 170px; display: block }
-
-/* ---- findings */
-.findings { display: grid; gap: 14px; margin-top: 10px }
-.findings h2 { font: 750 1.35rem var(--display); font-stretch: 108%; margin: 0; text-wrap: balance }
-.findings p { margin: 0; max-width: 72ch }
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px }
-.kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 4px; min-width: 0 }
-.kpi .n { font: 600 1.5rem var(--mono); font-variant-numeric: tabular-nums }
-.kpi .n.mpc { color: var(--mpc) } .kpi .n.base { color: var(--base) }
-.kpi .d { font-size: 0.85rem; color: var(--muted) }
-.fig { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 8px; display: grid; gap: 6px; min-width: 0; margin: 0 }
-.fig img { width: 100%; height: auto; display: block }
-.fig figcaption { color: #4b5563; font-size: 0.85rem; padding: 0 6px 4px }
-.lessons { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; max-width: 80ch }
-footer { color: var(--muted); font-size: 0.82rem; max-width: 90ch }
-footer p { margin: 0 0 6px }
-@media (max-width: 980px) { .scenarios { grid-template-columns: repeat(3, minmax(0, 1fr)) } }
+.mark { position: absolute; top: 9.5px; width: 7px; height: 7px; border-radius: 50%; transform: translateX(-3.5px); box-shadow: 0 0 0 1.5px var(--paper) }
+.mark.big { top: 6px; width: 1.5px; height: 14px; border-radius: 0; transform: translateX(-0.75px); box-shadow: none; background: var(--muted) }
+.opts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px }
+.grp { display: inline-flex; align-items: center; gap: 8px }
+.grp > span { color: var(--muted); font-weight: 400 }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 3px; overflow: hidden }
+.seg button { font: 500 12.5px var(--sans); padding: 4px 10px; border: 0; border-left: 1px solid var(--rule); background: transparent;
+  color: var(--ink2); cursor: pointer; white-space: nowrap }
+.seg button:first-child { border-left: 0 }
+.seg button:hover { background: var(--soft); color: var(--ink) }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper) }
+.figpanels { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 18px 30px; margin-top: 16px }
+.panel-h { font: 600 12.5px var(--sans); margin: 0 0 7px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px }
+.panel-h span { font-weight: 400; color: var(--muted) }
+.tblwrap { overflow-x: auto }
+table.tele { width: 100%; border-collapse: collapse; font: 13px var(--sans); font-variant-numeric: tabular-nums;
+  border-top: 1.5px solid var(--rule-strong); border-bottom: 1.5px solid var(--rule-strong) }
+.tele th { font-weight: 600; text-align: right; padding: 6px 8px 4px; border-bottom: 0.75px solid var(--rule-strong); white-space: nowrap; vertical-align: bottom }
+.tele th small { display: block; font-weight: 400; color: var(--muted); font-size: 11.5px }
+.tele th:first-child, .tele td:first-child, .tele th:nth-child(2), .tele td:nth-child(2) { text-align: left }
+.tele td { padding: 6px 8px; text-align: right; white-space: nowrap }
+.tele td small { color: var(--muted) }
+.tele tbody tr { cursor: pointer }
+.tele tbody tr:hover td { background: var(--soft) }
+.tele tbody tr.focus td { background: color-mix(in srgb, var(--c) 10%, transparent) }
+.tele .sw { display: inline-block; width: 10px; height: 10px; background: var(--c); margin-right: 8px; vertical-align: -1px }
+.tele .watch { font-size: 11px; color: var(--muted); margin-left: 7px; font-weight: 400 }
+.tele .ph { color: var(--muted) }
+.ph.ok, .resnote .ok { color: var(--ok); font-weight: 600 } .ph.miss, .resnote .miss { color: var(--miss); font-weight: 600 }
+.ph.bad, .resnote .bad { color: var(--bad); font-weight: 600 }
+.resnote { font: 13px/1.5 var(--sans); color: var(--ink2); margin: 8px 0 0; min-height: 1.5em }
+#chart { width: 100%; height: 196px; display: block }
+.interactive figcaption { margin-top: 14px }
+@media (max-width: 900px) { .figpanels { grid-template-columns: minmax(0, 1fr) } }
 @media (max-width: 640px) {
-  .scenarios { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+  body { font-size: 16.5px; padding-top: 28px }
   .stage { aspect-ratio: 4 / 5; max-height: none }
-  .hud { flex-direction: column; gap: 8px }
-  .bar { flex-wrap: wrap; gap: 8px 10px; padding-top: 24px }
-  .track { order: 5; flex-basis: 100% }
-  .seg button { padding: 5px 9px; font-size: 11px }
-  #speeds { display: none }
-  .toast { font-size: 12px; padding: 7px 12px; bottom: auto; top: 128px }
-  .hint { top: 46% }
+  .scn { padding: 7px 10px 6px }
+  .opts { gap: 8px 14px }
+  .seg button { padding: 4px 8px }
+  .abstract p { text-align: left }
+  .tele th:nth-child(5), .tele td:nth-child(5), .tele th:nth-child(6), .tele td:nth-child(6), .tele .watch { display: none }
+  .tele th, .tele td { padding-left: 6px; padding-right: 6px }
 }
-@media (prefers-reduced-motion: reduce) { .toast, .hint { transition: none } }
+@media (max-width: 640px) and (pointer: fine) { .hint { display: none } }
+@media (max-width: 480px) { .tele th:nth-child(2), .tele td:nth-child(2) { display: none } }
+@media (prefers-reduced-motion: reduce) { .hint { transition: none } }
 </style>
+<script>
+  window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]] }, svg: { fontCache: "global" },
+    options: { skipHtmlTags: ["script", "noscript", "style", "textarea", "pre", "code", "canvas"] } };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
 
-<div class="wrap">
-  <header>
-    <h1>Booster Catch Replay</h1>
-    <p class="lede">Guidance algorithms fly the same Super Heavy landing burn in the same simulated world, from
-      ignition 1.25 km up to the tower's arms. Pick a scenario and press play.</p>
-    <div class="legend">
-      <span><i style="background:var(--mpc)"></i>Convex MPC: plans a fuel-optimal path every second</span>
-      <span><i style="background:var(--base)"></i>Baseline: follows a fixed braking profile</span>
-      <span><i style="background:var(--eo)"></i>MPC + engine-out reserve (engine-failure scenarios)</span>
-    </div>
+<article class="paper">
+  <header class="titleblock">
+    <p class="kicker">Technical report &middot; October 2026</p>
+    <h1>Catching Super Heavy: Fuel-Optimal Convex Guidance versus a Braking Heuristic for Tower Capture</h1>
+    <p class="authors">Aiden Huang</p>
+    <p class="affil">Independent study</p>
+    <nav class="links" aria-label="Sections">
+      <a href="#fig-replay">Interactive replay</a>
+      <a href="#sec-method">Method</a>
+      <a href="#sec-results">Results</a>
+      <a href="#sec-limits">Limitations</a>
+      <a href="#app-repro">Reproduce</a>
+    </nav>
   </header>
 
-  <div class="scenarios" role="tablist" aria-label="Scenarios" id="scenarios"></div>
-  <p class="story"><span id="story"></span> <span class="key">Dots: each controller's result, <i class="dot" style="background:var(--ok)"></i> caught,
-    <i class="dot" style="background:var(--warn)"></i> missed safely, <i class="dot" style="background:var(--bad)"></i> pad strike.</span></p>
+  <section class="abstract" aria-labelledby="abs-h">
+    <h2 id="abs-h">Abstract</h2>
+    <p>We study guidance for the final 16&nbsp;s of a Super Heavy booster's return to its launch
+      tower, where the booster must reach the tower's catch arms within 1&nbsp;m while descending
+      at under 1.5&nbsp;m/s. A convex model-predictive controller (MPC), which re-solves a
+      lossless-convexified minimum-fuel problem as a second-order cone program every second, is
+      compared with an engineered braking-profile controller under identical sensing, actuation,
+      estimation, terminal-descent and abort logic. Over 300 dispersed landing burns with wind and
+      gusts, aerodynamic, thrust and mass uncertainty, navigation noise and random engine failures,
+      the MPC catches 86.3% of boosters against 73.0% (243 of 244 against 217 of 244
+      without an engine failure), with a nine-fold smaller capture error (4&nbsp;cm against 38&nbsp;cm,
+      median) and 1.3&nbsp;t more propellant remaining. Its weakness is the mid-burn engine failure:
+      braking late leaves less room to divert, and its aborts strike the pad more often (20 against 8
+      of 56 failures); a 10&nbsp;m/s approach-speed cap reduces this to 5 at an unchanged catch rate.
+      One additional convex constraint, an engine-out braking reserve, together with 5&nbsp;t (11%)
+      more landing propellant, survives 19 of 20 engine failures under full dispersions. All vehicle
+      parameters are public estimates; the contribution is the comparison and the mechanisms it
+      exposes, not a prediction for the real vehicle.</p>
+  </section>
 
-  <div class="stage" id="stage">
-    <canvas id="view" aria-label="3D replay of the selected flight"></canvas>
-    <div class="hud">
-      <div class="hud-l">
+  <figure class="wide interactive" id="fig-replay">
+    <div class="figtabs" role="tablist" aria-label="Scenario" id="scenarios"></div>
+    <p class="scn-desc" id="story"></p>
+    <div class="stage" id="stage">
+      <canvas id="view" aria-label="3D replay of the selected flight"></canvas>
+      <div class="ov" id="ov">
         <div class="phase" id="phase"></div>
-        <div class="chips" id="chips"></div>
+        <div class="meta" id="chips"></div>
       </div>
-      <div class="seg" id="cams" role="group" aria-label="Camera">
-        <button data-cam="auto" aria-pressed="true" title="Cuts between the best shots automatically">Auto</button>
-        <button data-cam="follow" aria-pressed="false" title="Track the watched booster; drag and scroll to orbit and zoom around it">Follow</button>
-        <button data-cam="tower" aria-pressed="false" title="Close-up of the tower's arms">Tower</button>
-        <button data-cam="wide" aria-pressed="false" title="The whole flight from far away">Wide</button>
-        <button data-cam="free" aria-pressed="false" title="Keep the camera where you put it">Free</button>
+      <div id="tags"></div>
+      <button class="bigplay" id="bigplay" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>Play replay</button>
+      <div class="pad" id="pad" role="group" aria-label="Move the view">
+        <button class="up" data-move="up" title="Move view up (W or ↑)" aria-label="Move view up"><svg viewBox="0 0 14 14"><path d="M7 3l4.5 6h-9z" fill="currentColor"/></svg></button>
+        <button class="left" data-move="left" title="Move view left (A or ←)" aria-label="Move view left"><svg viewBox="0 0 14 14"><path d="M3 7l6-4.5v9z" fill="currentColor"/></svg></button>
+        <button class="reset" id="reset-view" title="Reset the view (R)" aria-label="Reset the view"><svg viewBox="0 0 14 14"><path d="M7 2.2a4.8 4.8 0 1 0 4.6 6.3h-1.6A3.3 3.3 0 1 1 7 3.7V6l3-3-3-3z" fill="currentColor"/></svg></button>
+        <button class="right" data-move="right" title="Move view right (D or →)" aria-label="Move view right"><svg viewBox="0 0 14 14"><path d="M11 7l-6 4.5v-9z" fill="currentColor"/></svg></button>
+        <button class="down" data-move="down" title="Move view down (S or ↓)" aria-label="Move view down"><svg viewBox="0 0 14 14"><path d="M7 11L2.5 5h9z" fill="currentColor"/></svg></button>
+        <button class="zin" data-move="in" title="Zoom in (Q or +)" aria-label="Zoom in"><svg viewBox="0 0 14 14"><path d="M6 2h2v4h4v2H8v4H6V8H2V6h4z" fill="currentColor"/></svg></button>
+        <button class="zout" data-move="out" title="Zoom out (E or −)" aria-label="Zoom out"><svg viewBox="0 0 14 14"><path d="M2 6h10v2H2z" fill="currentColor"/></svg></button>
+      </div>
+      <div class="hint" id="hint">Drag to rotate · right-drag or arrow keys to pan · scroll to zoom · double-click to re-centre</div>
+    </div>
+    <div class="toolbar">
+      <div class="transport">
+        <button class="play" id="play" aria-label="Play" title="Play / pause (space)">
+          <svg viewBox="0 0 16 16" id="play-icon"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
+        </button>
+        <span class="time" id="clock">T+0.0 s</span>
+        <div class="track">
+          <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Replay time" title="Drag to scrub (comma and period keys step one second)">
+          <div class="marks" id="marks"></div>
+        </div>
+      </div>
+      <div class="opts">
+        <div class="grp"><span>View</span>
+          <div class="seg" id="cams" role="group" aria-label="Camera">
+            <button data-cam="auto" aria-pressed="true" title="Cuts between fixed viewpoints automatically">Auto</button>
+            <button data-cam="follow" aria-pressed="false" title="Track the followed booster; drag and scroll to orbit and zoom around it">Follow</button>
+            <button data-cam="tower" aria-pressed="false" title="Side-on view of the catch arms">Tower</button>
+            <button data-cam="wide" aria-pressed="false" title="The whole trajectory">Wide</button>
+            <button data-cam="free" aria-pressed="false" title="Keep the camera where you put it">Free</button>
+          </div>
+        </div>
+        <div class="grp"><span>Speed</span>
+          <div class="seg" id="speeds" role="group" aria-label="Playback speed">
+            <button data-s="0.25" aria-pressed="false">¼×</button>
+            <button data-s="0.5" aria-pressed="false">½×</button>
+            <button data-s="1" aria-pressed="true">1×</button>
+          </div>
+        </div>
+        <div class="grp"><span>Lighting</span>
+          <div class="seg" id="tod" role="group" aria-label="Lighting">
+            <button data-tod="sunset" aria-pressed="true">Sunset</button>
+            <button data-tod="day" aria-pressed="false">Day</button>
+            <button data-tod="night" aria-pressed="false">Night</button>
+          </div>
+        </div>
       </div>
     </div>
-    <div id="tags"></div>
-    <button class="bigplay" id="bigplay" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>Play flight</button>
-    <div class="pad" id="pad" role="group" aria-label="Move the view">
-      <button class="up" data-move="up" title="Move view up (W or ↑)" aria-label="Move view up"><svg viewBox="0 0 14 14"><path d="M7 3l4.5 6h-9z" fill="currentColor"/></svg></button>
-      <button class="left" data-move="left" title="Move view left (A or ←)" aria-label="Move view left"><svg viewBox="0 0 14 14"><path d="M3 7l6-4.5v9z" fill="currentColor"/></svg></button>
-      <button class="reset" id="reset-view" title="Reset the view (R)" aria-label="Reset the view"><svg viewBox="0 0 14 14"><path d="M7 2.2a4.8 4.8 0 1 0 4.6 6.3h-1.6A3.3 3.3 0 1 1 7 3.7V6l3-3-3-3z" fill="currentColor"/></svg></button>
-      <button class="right" data-move="right" title="Move view right (D or →)" aria-label="Move view right"><svg viewBox="0 0 14 14"><path d="M11 7l-6 4.5v-9z" fill="currentColor"/></svg></button>
-      <button class="down" data-move="down" title="Move view down (S or ↓)" aria-label="Move view down"><svg viewBox="0 0 14 14"><path d="M7 11L2.5 5h9z" fill="currentColor"/></svg></button>
-      <button class="zin" data-move="in" title="Zoom in (Q or +)" aria-label="Zoom in"><svg viewBox="0 0 14 14"><path d="M6 2h2v4h4v2H8v4H6V8H2V6h4z" fill="currentColor"/></svg></button>
-      <button class="zout" data-move="out" title="Zoom out (E or −)" aria-label="Zoom out"><svg viewBox="0 0 14 14"><path d="M2 6h10v2H2z" fill="currentColor"/></svg></button>
-    </div>
-    <div class="hint" id="hint">Drag to rotate · right-drag or arrow keys to move · scroll to zoom · double-click to center</div>
-    <div class="toast" id="toast"></div>
-    <div class="bar">
-      <button class="play" id="play" aria-label="Play" title="Play / pause (space)">
-        <svg viewBox="0 0 16 16" id="play-icon"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
-      </button>
-      <span class="time" id="clock">T+0.0 s</span>
-      <div class="track">
-        <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Replay time" title="Drag to scrub (comma and period keys step one second)">
-        <div class="marks" id="marks"></div>
+    <div class="figpanels">
+      <div>
+        <div class="panel-h">(b) Telemetry <span>select a row to follow that booster</span></div>
+        <div class="tblwrap">
+          <table class="tele" id="telemetry">
+            <thead><tr><th>Controller</th><th>Phase</th><th>Altitude<small>m</small></th><th>Descent<small>m/s</small></th>
+              <th>Lateral<small>m/s</small></th><th>Thrust<small>MN (engines)</small></th><th>Propellant<small>t</small></th></tr></thead>
+            <tbody id="cards"></tbody>
+          </table>
+        </div>
+        <p class="resnote" id="resnote" aria-live="polite"></p>
       </div>
-      <div class="seg" id="speeds" role="group" aria-label="Playback speed">
-        <button data-s="0.25" aria-pressed="false">¼×</button>
-        <button data-s="0.5" aria-pressed="false">½×</button>
-        <button data-s="1" aria-pressed="true">1×</button>
-      </div>
-      <div class="seg" id="tod" role="group" aria-label="Time of day">
-        <button data-tod="sunset" aria-pressed="true">Sunset</button>
-        <button data-tod="day" aria-pressed="false">Day</button>
-        <button data-tod="night" aria-pressed="false">Night</button>
+      <div>
+        <div class="panel-h">(c) Descent rate against height above the catch point</div>
+        <canvas id="chart" aria-label="Descent rate against height, log-log"></canvas>
       </div>
     </div>
-  </div>
-
-  <div class="cards" id="cards"></div>
-
-  <details class="chartbox">
-    <summary>Descent speed against height</summary>
-    <p>Each line is one controller braking from 270 m/s to 1 m/s (log scales). The dashed line is the terminal gate, 12 m above the arms.</p>
-    <canvas id="chart"></canvas>
-  </details>
+    <figcaption><b>Figure 1.</b> Interactive replay of six simulated landing burns. In each scenario
+      the controllers fly from the same initial state through the same disturbances. Solid lines
+      trace the centre of mass flown so far, faint dashed lines the full trajectory, and the light
+      dashed line ahead of the MPC booster its current convex plan. The followed controller is drawn
+      opaque, the others translucent. (b) Live telemetry. (c) Descent rate against height above the
+      catch point (log&ndash;log); the dashed line marks the terminal gate. Drag to rotate, right-drag or
+      use the arrow keys to pan, scroll to zoom towards the cursor and double-click to re-centre;
+      <kbd>Space</kbd> plays, <kbd>,</kbd>&thinsp;/&thinsp;<kbd>.</kbd> step one second and <kbd>R</kbd>
+      resets the view. Body attitude is a rendering approximation (&sect;7).</figcaption>
+  </figure>
 
   <!--FINDINGS-->
 
-  <footer>
-    <p>Simulation, not SpaceX data. Vehicle numbers are public estimates (Raptor 2: 2.26 MN, 40–100% throttle;
-      Super Heavy empty ~275 t). The simulator tracks the booster's centre of mass; the replay draws the body leaning
-      partway into the thrust and the engines gimballing the rest (as a real booster does), with the tower, arms and
-      booster drawn from public photos at roughly the right scale. Engines: 13 at ignition, the 3 centre engines from 3 s.</p>
-    <p>Catch tolerance: within 1 m of the catch point, under 1.5 m/s down, under 0.5 m/s sideways, tilt under 3°.
-      A booster that cannot be caught diverts offshore; coming down more than 40 m from the tower counts as a safe miss.</p>
+  <footer class="colophon">
+    <p>Independent simulation study, not affiliated with or endorsed by SpaceX. All vehicle and tower
+      parameters are public estimates; no SpaceX data were used. Vehicle and tower models in the replay
+      are drawn from public photographs at approximate scale.</p>
+    <p>Figures are generated from the result files by <code>scripts/make_figures.py</code>; this page is
+      built by <code>scripts/build_replay.py</code>.</p>
   </footer>
-</div>
+</article>
 
 <script type="application/json" id="flights">/*FLIGHTS_JSON*/</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -289,8 +355,8 @@ footer p { margin: 0 0 6px }
   const NAMES = { mpc: "Convex MPC", baseline: "Baseline", mpc_eo: "MPC + engine-out reserve" };
   const SHORT = { mpc: "MPC", baseline: "Baseline", mpc_eo: "MPC + reserve" };
   const VAR = { mpc: "--mpc", baseline: "--base", mpc_eo: "--eo" };
-  const HEX = { mpc: 0x4f8cff, baseline: 0xff9a3c, mpc_eo: 0x2fd3b0 };
-  const CSSHEX = { mpc: "#4f8cff", baseline: "#ff9a3c", mpc_eo: "#2fd3b0" };
+  const HEX = { mpc: 0x3fa4e8, baseline: 0xf2a91c, mpc_eo: 0xdc8cc2 };
+  const CSSHEX = { mpc: "#3fa4e8", baseline: "#f2a91c", mpc_eo: "#dc8cc2" };
   const CP = DATA.meta.tower.catch_point;
   const L = DATA.meta.vehicle.length, D = DATA.meta.vehicle.diameter, R = D / 2;
   const SWITCH = DATA.meta.switch_time, PAD_R = DATA.meta.tower.pad_radius, GATE_H = DATA.meta.tower.gate_height;
@@ -924,10 +990,7 @@ footer p { margin: 0 0 6px }
   DATA.flights.forEach((fl, i) => {
     const b = document.createElement("button");
     b.className = "scn"; b.type = "button"; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", i === 0 ? "true" : "false");
-    const dots = ALL.filter((k) => fl.runs[k]).map((k) =>
-      `<span class="dot ${OC[fl.runs[k].outcome]}" style="--c:${CSSHEX[k]}" title="${NAMES[k]}: ${fl.runs[k].outcome}"></span>`).join("");
-    b.innerHTML = `<b>${fl.title}</b><span class="res">${dots}</span>`;
-    b.title = fl.story;
+    b.textContent = fl.title; b.title = fl.story;
     b.addEventListener("click", () => selectFlight(i));
     scnBox.appendChild(b);
   });
@@ -935,39 +998,32 @@ footer p { margin: 0 0 6px }
   const tagBox = document.getElementById("tags");
   for (const k of ALL) {
     const el = document.createElement("div"); el.className = "tag"; el.style.setProperty("--c", CSSHEX[k]);
-    el.innerHTML = `<i></i><span></span>`; el.hidden = true; tagBox.appendChild(el); tagEls[k] = el;
+    el.hidden = true; tagBox.appendChild(el); tagEls[k] = el;
   }
   const MODE_LABEL = { approach: "guidance", terminal: "terminal descent", divert: "divert" };
-  function buildCards() {
+  function buildTelemetry() {
     const box = document.getElementById("cards"); box.innerHTML = "";
     for (const k of KEYS) {
-      const el = document.createElement("div");
-      el.className = "card"; el.tabIndex = 0; el.setAttribute("role", "button");
-      el.setAttribute("aria-label", `Follow ${NAMES[k]} with the camera`);
-      el.style.setProperty("--c", `var(${VAR[k]})`);
-      el.innerHTML = `<h2><i></i><span class="nm">${NAMES[k]}</span><span class="watch" data-f="watch">watching</span><span class="status" data-f="status">guidance</span></h2>
-        <div class="big3">
-          <div><div class="k">Altitude</div><div class="v" data-f="alt"></div></div>
-          <div><div class="k">Descent</div><div class="v" data-f="vz"></div></div>
-          <div><div class="k">Propellant</div><div class="v" data-f="prop"></div></div>
-        </div>
-        <div class="fuel"><b data-f="fuel"></b></div>
-        <div class="more" data-f="more"></div>
-        <div class="result" data-f="result">In flight.</div>`;
+      const tr = document.createElement("tr");
+      tr.tabIndex = 0; tr.setAttribute("role", "button");
+      tr.setAttribute("aria-label", `Follow ${NAMES[k]} with the camera`);
+      tr.style.setProperty("--c", `var(${VAR[k]})`);
+      tr.innerHTML = `<td><i class="sw"></i>${SHORT[k]}<span class="watch" data-f="watch">followed</span></td><td class="ph" data-f="status"></td>` +
+        `<td data-f="alt"></td><td data-f="vz"></td><td data-f="vh"></td><td data-f="thr"></td><td data-f="prop"></td>`;
       const pick = () => {
         focusKey = k;
         if (camMode === "follow") reframe = true; else if (camMode === "free" || camMode === "wide") setCam("follow");
         markFocus(); lastUI = -1;
       };
-      el.addEventListener("click", pick);
-      el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
-      box.appendChild(el);
-      card[k] = { el };
-      el.querySelectorAll("[data-f]").forEach((n) => (card[k][n.dataset.f] = n));
+      tr.addEventListener("click", pick);
+      tr.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
+      box.appendChild(tr);
+      card[k] = { el: tr };
+      tr.querySelectorAll("[data-f]").forEach((n) => (card[k][n.dataset.f] = n));
     }
     markFocus();
   }
-  // the booster being watched is drawn solid, the others as translucent ghosts (near the
+  // the booster being followed is drawn solid, the others as translucent ghosts (near the
   // catch they arrive at the same spot, and two solid boosters would merge into one shape)
   function setGhost(b, ghost) {
     if (b.ghost === ghost) return;
@@ -976,24 +1032,29 @@ footer p { margin: 0 0 6px }
     b.g.traverse((o) => { if (o.isMesh && !o.material.isShaderMaterial) o.castShadow = !ghost; });
   }
   function markFocus() {
-    for (const k of KEYS) if (card[k]) { card[k].el.classList.toggle("focus", k === focusKey); card[k].watch.hidden = k !== focusKey; }
+    for (const k of KEYS) if (card[k]) {
+      card[k].el.classList.toggle("focus", k === focusKey); card[k].watch.hidden = k !== focusKey;
+      card[k].el.setAttribute("aria-pressed", k === focusKey ? "true" : "false");
+    }
     for (const k of ALL) setGhost(boosters[k], KEYS.length > 1 && k !== focusKey);
+    const fn = document.getElementById("follow-name");
+    if (fn) fn.textContent = NAMES[focusKey];
   }
-  function resultText(run) {
+  function resultText(run, k) {
     const c = run.capture || {};
     if (run.outcome === "caught")
-      return { cls: "ok", html: `<b>Caught</b> at T+${c.time.toFixed(1)} s, ${(c.lateral_error * 100).toFixed(0)} cm from the catch point, ` +
-        `${Math.abs(c.vz).toFixed(2)} m/s down, ${(c.propellant_left / 1000).toFixed(1)} t of propellant left.` };
-    const why = run.abort ? `Aborted at T+${run.abort_time.toFixed(1)} s (${run.abort}) and diverted offshore.` : run.reason + ".";
-    return run.outcome === "safe miss" ? { cls: "miss", html: `<b>Missed, pad safe.</b> ${why}` } : { cls: "bad", html: `<b>Pad strike.</b> ${why}` };
+      return `<span class="ok">${SHORT[k]}: caught</span> at T+${c.time.toFixed(1)} s, ${(c.lateral_error * 100).toFixed(0)} cm from the catch point, ` +
+        `${Math.abs(c.vz).toFixed(2)} m/s descent, ${(c.propellant_left / 1000).toFixed(1)} t propellant remaining.`;
+    const why = run.abort ? `aborted at T+${run.abort_time.toFixed(1)} s (${run.abort}) and diverted offshore` : run.reason;
+    return `<span class="${OC[run.outcome]}">${SHORT[k]}: ${run.outcome}</span>; ${why}.`;
   }
   const ARROW = '<svg viewBox="0 0 12 12"><path d="M6 1l3.5 6H7v4H5V7H2.5z" fill="currentColor"/></svg>';
   function buildChips(fl) {
     const ws = Math.hypot(fl.wind[0], fl.wind[1]);
-    const chips = [];
-    chips.push(ws > 0.1 ? `<span class="chip" id="chip-wind" title="Wind direction relative to the camera">${ARROW}wind ${ws.toFixed(0)} m/s</span>` : `<span class="chip">calm air</span>`);
-    if (fl.engine_out_time != null) chips.push(`<span class="chip" id="chip-eo">engine fails at T+${fl.engine_out_time.toFixed(0)} s</span>`);
-    document.getElementById("chips").innerHTML = chips.join("");
+    const items = [`<span>Following <span id="follow-name">${NAMES[focusKey]}</span></span>`];
+    items.push(ws > 0.1 ? `<span id="chip-wind" title="Wind direction relative to the view">wind ${ws.toFixed(0)} m/s${ARROW}</span>` : "<span>calm air</span>");
+    if (fl.engine_out_time != null) items.push(`<span id="chip-eo">engine failure at T+${fl.engine_out_time.toFixed(0)} s</span>`);
+    document.getElementById("chips").innerHTML = items.join("");
   }
   function buildMarks(fl) {
     const box = document.getElementById("marks"); box.innerHTML = "";
@@ -1003,10 +1064,10 @@ footer p { margin: 0 0 6px }
       if (color) m.style.background = color; m.title = title; box.appendChild(m);
     };
     add(SWITCH, "big", null, "13 → 3 engines");
-    if (fl.engine_out_time != null) add(fl.engine_out_time, "big", "#ff5a52", "engine failure");
+    if (fl.engine_out_time != null) add(fl.engine_out_time, "big", "var(--bad)", "engine failure");
     for (const k of KEYS) for (const e of events(fl.runs[k])) {
       if (e.kind === "gate" || e.kind === "abort") continue;
-      add(e.t, "", e.kind === "caught" ? "#4ade80" : e.kind === "pad strike" ? "#ff5a52" : "#b8c0cc", `${SHORT[k]}: ${e.kind}`);
+      add(e.t, "", `var(--${OC[e.kind]})`, `${SHORT[k]}: ${e.kind}`);
     }
   }
   function selectFlight(i) {
@@ -1017,7 +1078,7 @@ footer p { margin: 0 0 6px }
     KEYS = ALL.filter((k) => fl.runs[k]);
     if (fl.runs.mpc_eo && fl.engine_out_time != null) focusKey = "mpc_eo";
     else if (!KEYS.includes(focusKey)) focusKey = "mpc";
-    buildCards(); buildChips(fl);
+    buildChips(fl); buildTelemetry();
     tEnd = Math.max(...KEYS.map((k) => endT(fl.runs[k]))) + AFTER;
     for (const k of ALL) {
       const on = KEYS.includes(k);
@@ -1025,7 +1086,7 @@ footer p { margin: 0 0 6px }
       if (on) { setLine(trails[k], fl.runs[k].r); setLine(ghosts[k], fl.runs[k].r); }
     }
     buildMarks(fl);
-    lastPlanT0 = null;
+    lastPlanT0 = null; lastNote = null;
     drawChartBase();
     setPlaying(false);
     setCam(camMode === "free" ? "auto" : camMode, true);
@@ -1183,8 +1244,8 @@ footer p { margin: 0 0 6px }
   window.addEventListener("blur", () => held.clear());
 
   // ================================================================== per-frame scene update
-  let lastPlanT0 = null, lastUI = -1, clockTime = 0, toastKey = "";
-  const toast = document.getElementById("toast"), hudEl = document.querySelector(".hud-l");
+  let lastPlanT0 = null, lastUI = -1, clockTime = 0, lastNote = null;
+  const hudEl = document.getElementById("ov");
   const tmpQ = new THREE.Quaternion();
   function updateScene(dt) {
     const fl = DATA.flights[flight];
@@ -1221,7 +1282,7 @@ footer p { margin: 0 0 6px }
       const tip = p.clone().addScaledVector(bd, L / 2 + 6).project(camera);
       if (tip.z < 1 && !crashed) {
         tagPos.push({ k, x: (tip.x + 1) / 2 * rect.width, y: (1 - tip.y) / 2 * rect.height });
-        tagEls[k].querySelector("span").textContent = `${SHORT[k]} · ${Math.max(0, s.r[2]).toFixed(0)} m`;
+        tagEls[k].textContent = `${SHORT[k]}  ${Math.max(0, s.r[2]).toFixed(0)} m`;
       } else tagEls[k].hidden = true;
     }
     tagPos.sort((a, b) => a.y - b.y);
@@ -1319,56 +1380,47 @@ footer p { margin: 0 0 6px }
   }
   function phaseText(fl, run, s) {
     const tEndRun = run.outcome === "caught" ? run.capture.time : endT(run);
-    const who = `<small>Watching ${NAMES[focusKey]}</small>`;
     if (t >= tEndRun) {
-      if (run.outcome === "caught") return `Caught by the tower's arms${who}`;
-      return (run.outcome === "safe miss" ? "Missed: came down clear of the pad" : "Pad strike") + who;
+      if (run.outcome === "caught") return "Captured by the tower arms";
+      return run.outcome === "safe miss" ? "Missed: came down clear of the pad" : "Pad strike";
     }
-    if (s.mode === "divert") return `Abort: diverting offshore${who}`;
-    if (s.mode === "terminal") return `Terminal descent: slowing into the arms${who}`;
-    if (t < SWITCH) return `Landing burn · ${litEngines(s.n)} engines braking${who}`;
-    return `Final approach · ${litEngines(s.n)} engine${litEngines(s.n) === 1 ? "" : "s"}${who}`;
+    if (s.mode === "divert") return "Abort: diverting offshore";
+    if (s.mode === "terminal") return "Terminal descent into the arms";
+    const n = litEngines(s.n);
+    if (t < SWITCH) return `Landing burn, ${n} engines`;
+    return `Final approach, ${n} engine${n === 1 ? "" : "s"}`;
   }
   function updateUI() {
     const fl = DATA.flights[flight];
+    const notes = [];
     for (const k of KEYS) {
       const run = fl.runs[k], s = sample(run, t), c = card[k];
       if (!c) continue;
       const sh = Math.hypot(s.v[0], s.v[1]), Tm = Math.hypot(s.T[0], s.T[1], s.T[2]);
-      const dist = Math.hypot(s.r[0] - CP[0], s.r[1] - CP[1], s.r[2] - CP[2]);
-      c.alt.innerHTML = `${Math.max(0, s.r[2]).toFixed(0)}<small> m</small>`;
-      c.vz.innerHTML = `${(-s.v[2]).toFixed(1)}<small> m/s</small>`;
-      c.prop.innerHTML = `${s.prop.toFixed(1)}<small> t</small>`;
-      c.fuel.style.width = `${Math.max(0, Math.min(100, s.prop / run.prop[0] * 100))}%`;
-      c.more.textContent = `sideways ${sh.toFixed(1)} m/s · thrust ${(s.done ? 0 : Tm).toFixed(1)} MN (${s.done ? 0 : litEngines(s.n)} engines) · ${dist.toFixed(dist < 10 ? 2 : 0)} m to catch point`;
-      const done = s.done;
-      const rt = done ? resultText(run) : { cls: "", html: "In flight." };
-      c.result.className = "result " + rt.cls; c.result.innerHTML = rt.html;
-      c.status.className = "status " + (done ? rt.cls : "");
-      c.status.textContent = done ? run.outcome : MODE_LABEL[s.mode];
+      c.alt.textContent = Math.max(0, s.r[2]).toFixed(0);
+      c.vz.textContent = (-s.v[2]).toFixed(1);
+      c.vh.textContent = sh.toFixed(1);
+      c.thr.innerHTML = s.done ? "&ndash;" : `${Tm.toFixed(1)} <small>(${litEngines(s.n)})</small>`;
+      c.prop.textContent = s.prop.toFixed(1);
+      c.status.className = "ph " + (s.done ? OC[run.outcome] : "");
+      c.status.textContent = s.done ? run.outcome : MODE_LABEL[s.mode];
+      if (s.done) notes.push(resultText(run, k));
     }
+    const note = notes.join("<br>");
+    if (note !== lastNote) { document.getElementById("resnote").innerHTML = note; lastNote = note; }
     const run = fl.runs[focusKey], ms = sample(run, t);
-    document.getElementById("phase").innerHTML = phaseText(fl, run, ms);
+    document.getElementById("phase").innerHTML = `<span class="t">T+${Math.min(t, tEnd - AFTER).toFixed(1)} s</span>${phaseText(fl, run, ms)}`;
     const eo = document.getElementById("chip-eo");
-    if (eo) { const on = t >= fl.engine_out_time; eo.classList.toggle("alert", on); eo.textContent = on ? "engine out" : `engine fails at T+${fl.engine_out_time.toFixed(0)} s`; }
+    if (eo) {
+      const on = t >= fl.engine_out_time;
+      eo.classList.toggle("alert", on);
+      eo.textContent = `${on ? "engine failed" : "engine failure"} at T+${fl.engine_out_time.toFixed(0)} s`;
+    }
     const wc = document.querySelector("#chip-wind svg");
     if (wc) wc.style.transform = `rotate(${compassAngle(fl)}deg)`;
     clock.innerHTML = `T+${Math.min(t, tEnd - AFTER).toFixed(1)} <span>/ ${(tEnd - AFTER).toFixed(1)} s</span>`;
     scrub.value = Math.round(t / tEnd * 1000);
     scrub.style.setProperty("--p", (t / tEnd * 100).toFixed(2) + "%");
-    const te = run.outcome === "caught" ? run.capture.time : endT(run);
-    const show = t >= te && t < te + 3.2;
-    const key = show ? `${flight}-${focusKey}` : "";
-    if (key !== toastKey) {
-      toastKey = key;
-      if (show) {
-        const c = run.capture || {};
-        toast.className = "toast " + OC[run.outcome];
-        toast.textContent = run.outcome === "caught" ? `${SHORT[focusKey]}: caught, ${(c.lateral_error * 100).toFixed(0)} cm from the catch point`
-          : run.outcome === "safe miss" ? `${SHORT[focusKey]}: missed, came down clear of the pad` : `${SHORT[focusKey]}: pad strike`;
-        requestAnimationFrame(() => toast.classList.add("show"));
-      } else toast.classList.remove("show");
-    }
     drawChartCursor();
   }
 
@@ -1377,34 +1429,56 @@ footer p { margin: 0 0 6px }
   function chartGeom() {
     const r = chart.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
     chart.width = Math.max(10, r.width * dpr); chart.height = Math.max(10, r.height * dpr);
-    return { W: chart.width, H: chart.height, dpr, pl: 50 * dpr, pr: 18 * dpr, pt: 8 * dpr, pb: 24 * dpr };
+    return { W: chart.width, H: chart.height, dpr, pl: 50 * dpr, pr: 8 * dpr, pt: 8 * dpr, pb: 38 * dpr };
   }
   const xs = (h, g) => g.pl + (Math.log10(Math.max(h, 0.5)) - Math.log10(0.5)) / (Math.log10(1400) - Math.log10(0.5)) * (g.W - g.pl - g.pr);
   const ys = (v, g) => g.H - g.pb - (Math.log10(Math.max(v, 0.3)) - Math.log10(0.3)) / (Math.log10(400) - Math.log10(0.3)) * (g.H - g.pt - g.pb);
   function drawChartBase() {
     const g = chartGeom(); base = g;
     if (g.W < 20) return;
+    const d = g.dpr, ink = css("--ink"), muted = css("--muted"), rule = css("--rule"), sans = css("--sans") || "sans-serif";
+    const x0 = g.pl, x1 = g.W - g.pr, y0 = g.pt, y1 = g.H - g.pb;
     cx.clearRect(0, 0, g.W, g.H);
-    cx.font = `${11 * g.dpr}px ${css("--mono") || "monospace"}`;
-    cx.fillStyle = css("--muted"); cx.strokeStyle = css("--line"); cx.lineWidth = g.dpr; cx.textAlign = "center";
-    for (const h of [1, 10, 100, 1000]) { const x = xs(h, g); cx.beginPath(); cx.moveTo(x, g.pt); cx.lineTo(x, g.H - g.pb); cx.stroke(); cx.fillText(h + " m", x, g.H - 6 * g.dpr); }
-    cx.textAlign = "left";
-    for (const v of [1, 10, 100]) { const y = ys(v, g); cx.beginPath(); cx.moveTo(g.pl, y); cx.lineTo(g.W - g.pr, y); cx.stroke(); cx.fillText(v + " m/s", 2 * g.dpr, y + 4 * g.dpr); }
-    cx.setLineDash([4 * g.dpr, 4 * g.dpr]); cx.strokeStyle = css("--muted");
-    const gx = xs(GATE_H, g); cx.beginPath(); cx.moveTo(gx, g.pt); cx.lineTo(gx, g.H - g.pb); cx.stroke(); cx.setLineDash([]);
+    cx.lineWidth = d; cx.strokeStyle = rule;
+    cx.font = `${10.5 * d}px ${sans}`; cx.fillStyle = muted;
+    cx.textAlign = "center"; cx.textBaseline = "top";
+    for (const h of [1, 10, 100, 1000]) {
+      const x = xs(h, g); cx.beginPath(); cx.moveTo(x, y0); cx.lineTo(x, y1); cx.stroke();
+      cx.fillText(String(h), x, y1 + 5 * d);
+    }
+    cx.textAlign = "right"; cx.textBaseline = "middle";
+    for (const v of [1, 10, 100]) {
+      const y = ys(v, g); cx.beginPath(); cx.moveTo(x0, y); cx.lineTo(x1, y); cx.stroke();
+      cx.fillText(String(v), x0 - 6 * d, y);
+    }
+    cx.strokeStyle = ink; cx.lineWidth = 0.9 * d;
+    cx.beginPath(); cx.moveTo(x0, y0); cx.lineTo(x0, y1); cx.lineTo(x1, y1); cx.stroke();
+    cx.fillStyle = ink; cx.font = `${11 * d}px ${sans}`;
+    cx.textAlign = "center"; cx.textBaseline = "bottom";
+    cx.fillText("height above the catch point (m)", (x0 + x1) / 2, g.H - 1 * d);
+    cx.save(); cx.translate(12 * d, (y0 + y1) / 2); cx.rotate(-Math.PI / 2); cx.textBaseline = "middle";
+    cx.fillText("descent rate (m/s)", 0, 0); cx.restore();
+    cx.setLineDash([3 * d, 3 * d]); cx.strokeStyle = muted;
+    const gx = xs(GATE_H, g); cx.beginPath(); cx.moveTo(gx, y0); cx.lineTo(gx, y1); cx.stroke(); cx.setLineDash([]);
+    cx.fillStyle = muted; cx.font = `${10.5 * d}px ${sans}`; cx.textAlign = "left"; cx.textBaseline = "top";
+    cx.fillText("gate", gx + 4 * d, y1 - 16 * d);
     const fl = DATA.flights[flight];
-    for (const k of KEYS) {
+    KEYS.forEach((k, i) => {
       const run = fl.runs[k];
-      cx.strokeStyle = css(VAR[k]); cx.lineWidth = 1.8 * g.dpr; cx.lineJoin = "round"; cx.beginPath();
+      cx.strokeStyle = css(VAR[k]); cx.lineWidth = 1.6 * d; cx.lineJoin = "round"; cx.beginPath();
       let started = false;
-      run.r.forEach((p, i) => {
-        const h = p[2] - CP[2], v = -run.v[i][2];
+      run.r.forEach((p, j) => {
+        const h = p[2] - CP[2], v = -run.v[j][2];
         if (h <= 0.5 || v <= 0) { started = false; return; }
         const x = xs(h, g), y = ys(v, g);
         if (!started) { cx.moveTo(x, y); started = true; } else cx.lineTo(x, y);
       });
       cx.stroke();
-    }
+      // legend in the empty top-left corner (low and fast never happens)
+      const ly = y0 + 8 * d + i * 15 * d;
+      cx.beginPath(); cx.moveTo(x0 + 10 * d, ly); cx.lineTo(x0 + 26 * d, ly); cx.stroke();
+      cx.fillStyle = ink; cx.textBaseline = "middle"; cx.fillText(NAMES[k], x0 + 31 * d, ly);
+    });
     base.img = cx.getImageData(0, 0, g.W, g.H);
   }
   function drawChartCursor() {
@@ -1414,11 +1488,11 @@ footer p { margin: 0 0 6px }
     for (const k of KEYS) {
       const s = sample(fl.runs[k], t), h = s.r[2] - CP[2];
       if (h <= 0.5 || -s.v[2] <= 0 || s.done) continue;
-      cx.fillStyle = css(VAR[k]); cx.strokeStyle = css("--panel"); cx.lineWidth = 2 * base.dpr;
-      cx.beginPath(); cx.arc(xs(h, base), ys(-s.v[2], base), 4.5 * base.dpr, 0, Math.PI * 2); cx.fill(); cx.stroke();
+      cx.fillStyle = css(VAR[k]); cx.strokeStyle = css("--paper"); cx.lineWidth = 1.5 * base.dpr;
+      cx.beginPath(); cx.arc(xs(h, base), ys(-s.v[2], base), 4 * base.dpr, 0, Math.PI * 2); cx.fill(); cx.stroke();
     }
   }
-  document.querySelector("details.chartbox").addEventListener("toggle", () => { drawChartBase(); drawChartCursor(); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { drawChartBase(); drawChartCursor(); });
 
   // ================================================================== loop
   function resize() {

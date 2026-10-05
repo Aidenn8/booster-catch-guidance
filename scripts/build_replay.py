@@ -1,5 +1,5 @@
 """Build the self-contained replay page from the template, docs/replay/flights.json,
-docs/replay/findings.html (optional) and the figures it references.
+docs/replay/paper.html (the report body; optional) and the figures it references.
 
     python scripts/build_replay.py [artifact_out.html]
 
@@ -19,7 +19,7 @@ from boostercatch import ROOT  # noqa: E402
 D = ROOT / "docs" / "replay"
 IMG = ROOT / "docs" / "images"
 page = (D / "template.html").read_text().replace("/*FLIGHTS_JSON*/", (D / "flights.json").read_text())
-findings = (D / "findings.html").read_text() if (D / "findings.html").exists() else ""
+findings = (D / "paper.html").read_text() if (D / "paper.html").exists() else ""
 
 
 def inline(m):

@@ -35,6 +35,19 @@ SHOTS = [  # (scenario index, scrub 0-1000, camera / action, time of day, name)
 ]
 
 
+def pages(pg, prefix, anchors=("", "#sec-method", "#tab-mc", "#fig-basin", "#sec-refs")):
+    """Viewport screenshots of the top of the page and of a few sections (the page is too
+    tall for one full-page capture)."""
+    for i, a in enumerate(anchors):
+        if a:
+            pg.evaluate(f"document.querySelector('{a}').scrollIntoView({{block: 'start'}})")
+        else:
+            pg.evaluate("window.scrollTo(0, 0)")
+        pg.wait_for_timeout(250)
+        pg.screenshot(path=str(out / f"{prefix}_{i}.png"))
+    pg.evaluate("window.scrollTo(0, 0)")
+
+
 def scrub(pg, v):
     pg.locator("#scrub").evaluate(f"(el) => {{ el.value = {v}; el.dispatchEvent(new Event('input')); }}")
 
@@ -47,14 +60,15 @@ with sync_playwright() as p:
     pg.on("pageerror", lambda e: errors.append("PAGEERROR " + str(e)))
     pg.goto(page_path.as_uri())
     pg.wait_for_timeout(3500)
-    pg.screenshot(path=str(out / "page_dark.png"), full_page=True)
+    pages(pg, "page_dark")
+    maths = pg.evaluate("document.querySelectorAll('mjx-container').length")
     pg.locator("#stage").screenshot(path=str(out / "start.png"))
     for scn, frac, cam, tod, name in SHOTS:
         pg.locator(".scn").nth(scn).click()
         pg.wait_for_timeout(300)
         pg.locator(f'#tod button[data-tod="{tod}"]').click()
         if cam == "follow0":
-            pg.locator(".card").first.click()      # watch the MPC booster
+            pg.locator("#cards tr").first.click()      # follow the MPC booster
             pg.locator('#cams button[data-cam="auto"]').click()
         elif cam:
             pg.locator(f'#cams button[data-cam="{cam}"]').click()
@@ -67,7 +81,7 @@ with sync_playwright() as p:
     overflow = pg.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth")
     fps = pg.evaluate("""() => new Promise((res) => { let n = 0; const t0 = performance.now();
         function f(){ n++; if (performance.now() - t0 < 2000) requestAnimationFrame(f); else res(n / 2); } requestAnimationFrame(f); })""")
-    print("dark 1280: console:", errors or "none", "| overflow:", overflow, "| fps ~", fps)
+    print("dark 1280: console:", errors or "none", "| overflow:", overflow, "| fps ~", fps, "| equations typeset:", maths)
     pg.close()
     for scheme, (w, h) in (("light", (1280, 900)), ("light", (400, 860))):
         pg = b.new_page(viewport={"width": w, "height": h}, color_scheme=scheme)
@@ -75,10 +89,11 @@ with sync_playwright() as p:
         pg.on("pageerror", lambda e: errs.append(str(e)))
         pg.goto(page_path.as_uri())
         pg.wait_for_timeout(3000)
-        pg.screenshot(path=str(out / f"page_{scheme}_{w}_start.png"), full_page=True)
+        pages(pg, f"page_{scheme}_{w}")
         scrub(pg, 760)
         pg.wait_for_timeout(900)
-        pg.screenshot(path=str(out / f"page_{scheme}_{w}.png"), full_page=True)
+        pg.locator("#fig-replay").scroll_into_view_if_needed()
+        pg.screenshot(path=str(out / f"page_{scheme}_{w}_replay.png"))
         overflow = pg.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth")
         print(f"{scheme} {w}: page errors:", errs or "none", "| overflow:", overflow)
         pg.close()
