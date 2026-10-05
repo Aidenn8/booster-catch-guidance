@@ -239,7 +239,7 @@ Also: `tower_hit(r)` (the tower volume test) and `ballistic_impact(r, v)`.
 
 ## Tests
 
-`python -m pytest tests/ -q` runs 14 tests in about a minute.
+`python -m pytest tests/ -q` runs 14 tests in one to two minutes.
 
 | Test | Checks |
 |---|---|

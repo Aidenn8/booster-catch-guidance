@@ -204,7 +204,7 @@ git clone https://github.com/Aidenn8/booster-catch-guidance.git
 cd booster-catch-guidance
 python -m venv .venv && source .venv/bin/activate      # Python 3.11+
 pip install -r requirements.txt
-python -m pytest tests/ -q                             # 14 tests, about a minute
+python -m pytest tests/ -q                             # 14 tests, one to two minutes
 ```
 
 Fly one landing burn:

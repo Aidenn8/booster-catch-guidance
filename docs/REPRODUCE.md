@@ -22,7 +22,7 @@ git clone https://github.com/Aidenn8/booster-catch-guidance.git
 cd booster-catch-guidance
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-python -m pytest tests/ -q          # 14 tests, about a minute
+python -m pytest tests/ -q          # 14 tests, one to two minutes
 ```
 
 Dependencies: NumPy, SciPy, CVXPY, Clarabel (the conic solver), Matplotlib and pytest. The
