@@ -11,7 +11,7 @@
 :root {
   --bg: #000000; --paper: #000000; --ink: #ffffff; --ink2: #d4d4d4; --muted: #8e8e8e; --faint: #5e5e5e;
   --rule: #2a2a2a; --rule-strong: #474747; --soft: #101010; --link: #ffffff;
-  --mpc: #56B4E9; --base: #E69F00; --eo: #DA9BC6; --ok: #2fc495; --miss: #9a9a9a; --bad: #ff7f45;
+  --mpc: #56B4E9; --cap: #A9D6F5; --base: #E69F00; --eo: #DA8FC2; --ok: #2fc495; --miss: #9a9a9a; --bad: #ff7f45;
   --sans: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
   --max: 1240px; --lab: 240px; --gap: 56px; --measure: 760px;
@@ -45,12 +45,14 @@ kbd { font: 500 0.78em var(--mono); border: 1px solid var(--rule-strong); border
 
 /* ---- title block */
 .titleblock { padding-bottom: 36px }
-h1 { font: 500 clamp(2.5rem, 6vw, 4.4rem)/1.02 var(--sans); letter-spacing: -0.035em; margin: 0 0 18px }
-.subtitle { font: 400 clamp(1.2rem, 2.2vw, 1.6rem)/1.3 var(--sans); letter-spacing: -0.015em; color: var(--ink2); margin: 0 0 18px; max-width: 900px }
+h1 { font: 500 clamp(2.1rem, 4.3vw, 3.45rem)/1.08 var(--sans); letter-spacing: -0.032em; margin: 0 0 20px; max-width: 1020px; text-wrap: balance }
+.subtitle { font: 400 clamp(1.15rem, 1.9vw, 1.4rem)/1.4 var(--sans); letter-spacing: -0.012em; color: var(--ink2); margin: 0 0 14px; max-width: 900px; text-wrap: balance }
 .meta { color: var(--muted); font-size: 15px; margin: 0 }
-.tabs { display: flex; flex-wrap: wrap; gap: 8px 32px; margin-top: 44px; font-size: 20px; letter-spacing: -0.01em }
-.tabs a { color: var(--muted); text-decoration: none }
-.tabs a:hover { color: var(--ink) }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px 28px; margin-top: 34px; padding-top: 24px;
+  border-top: 1px solid var(--rule) }
+.stat b { display: block; font: 400 30px/1.1 var(--sans); letter-spacing: -0.025em; color: var(--ink); font-variant-numeric: tabular-nums }
+.stat b span { color: var(--muted) }
+.stat p { margin: 10px 0 0; font-size: 14px; line-height: 1.45; color: var(--muted) }
 
 /* ---- rows: label column + content */
 .row { display: grid; grid-template-columns: var(--lab) minmax(0, 1fr); column-gap: var(--gap); border-top: 1px solid var(--rule); padding: 48px 0 32px }
@@ -59,7 +61,7 @@ h1 { font: 500 clamp(2.5rem, 6vw, 4.4rem)/1.02 var(--sans); letter-spacing: -0.0
 .body { min-width: 0 }
 .body > p, .body > ul, .body > ol, .body > h3, .body > pre, .body > .eq, .body > figure, .body > .tbl { max-width: var(--measure) }
 .body > figure.mid, .body > figure.wide, .body > .tbl.mid { max-width: none }
-.abstract .body p { font-size: 19px; line-height: 1.6; letter-spacing: -0.01em; color: var(--ink) }
+.overview .body > p { font-size: 19px; line-height: 1.6; letter-spacing: -0.01em; color: var(--ink) }
 h3 { font: 400 22px/1.3 var(--sans); letter-spacing: -0.015em; margin: 40px 0 12px }
 .body > h3:first-child { margin-top: 0 }
 .eq { overflow-x: auto; overflow-y: hidden; margin: 4px 0 14px }
@@ -70,15 +72,30 @@ figure { margin: 32px 0 36px }
 figure img { display: block; width: 100%; height: auto; background: #000 }
 figcaption { font-size: 15px; line-height: 1.55; color: var(--muted); margin-top: 12px; max-width: var(--measure) }
 figcaption b, caption b { color: var(--ink); font-weight: 500 }
-.tbl { overflow-x: auto; margin: 28px 0 30px }
-table.bt { border-collapse: collapse; width: 100%; font-size: 15px; line-height: 1.45; font-variant-numeric: tabular-nums;
+.tbl { margin: 28px 0 30px }
+.tscroll, .fscroll { overflow-x: auto; -webkit-overflow-scrolling: touch }
+.tcap { font-size: 15px; color: var(--ink); margin: 0 0 12px; line-height: 1.5 }
+.tcap b { font-weight: 500 }
+.tcap span { color: var(--muted); margin-left: 6px }
+table.bt { border-collapse: collapse; width: 100%; font-size: 15px; line-height: 1.45;
   border-top: 1px solid var(--rule-strong); border-bottom: 1px solid var(--rule-strong) }
-table.bt caption { caption-side: top; text-align: left; font-size: 15px; color: var(--muted); padding-bottom: 10px; line-height: 1.55 }
-table.bt th { font-weight: 400; color: var(--muted); text-align: left; padding: 10px 12px 8px 0; border-bottom: 1px solid var(--rule); vertical-align: bottom }
+table.bt caption { caption-side: top; text-align: left; font-size: 15px; color: var(--ink); padding-bottom: 12px; line-height: 1.5 }
+table.bt caption b { font-weight: 500 }
+table.bt caption span { color: var(--muted); margin-left: 6px }
+table.bt th { font-weight: 400; font-size: 13.5px; color: var(--muted); text-align: left; padding: 10px 12px 8px 0; border-bottom: 1px solid var(--rule); vertical-align: bottom }
+table.bt thead tr:first-child th[rowspan] { border-bottom: 1px solid var(--rule) }
+table.bt th.cg { text-align: center; color: var(--ink2); padding-bottom: 6px; border-bottom: 1px solid var(--rule-strong) }
+table.bt thead tr + tr th { padding-top: 6px }
+table.bt .gs { padding-left: 28px }
+table.bt .hi { font-weight: 600 }
+table.bt .sw { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--c); margin-right: 10px; vertical-align: 1px }
+table.kv th[scope="row"] { color: var(--muted); font-size: 15px; width: 190px; border-bottom: 0; padding: 6px 16px 6px 0; vertical-align: top }
+table.kv tbody tr:first-child th, table.kv tbody tr:first-child td { padding-top: 12px }
+table.kv tbody tr:last-child th, table.kv tbody tr:last-child td { padding-bottom: 12px }
 table.bt td { padding: 6px 12px 6px 0; vertical-align: top; color: var(--ink) }
 table.bt tbody tr:first-child td { padding-top: 10px }
 table.bt tbody tr:last-child td { padding-bottom: 10px }
-table.bt .n { text-align: right; white-space: nowrap; padding-left: 12px }
+table.bt .n { text-align: right; white-space: nowrap; padding-left: 12px; font-variant-numeric: tabular-nums }
 table.bt td:last-child, table.bt th:last-child { padding-right: 0 }
 table.bt.res td:first-child { white-space: nowrap }
 ol.mech li { margin-bottom: 12px }
@@ -156,7 +173,8 @@ ol.refs li::marker { content: "[" counter(list-item) "]\2002"; color: var(--mute
 .panel-h { font-size: 15px; margin: 0 0 10px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 14px }
 .panel-h span { color: var(--muted) }
 .tblwrap { overflow-x: auto }
-table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans); font-variant-numeric: tabular-nums }
+table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans) }
+.tele td + td + td { font-variant-numeric: tabular-nums }
 .tele th { font-weight: 400; color: var(--muted); text-align: right; padding: 0 10px 8px; border-bottom: 1px solid var(--rule); white-space: nowrap; vertical-align: bottom }
 .tele th small { display: block; color: var(--faint); font-size: 12px }
 .tele th:first-child, .tele td:first-child, .tele th:nth-child(2), .tele td:nth-child(2) { text-align: left }
@@ -187,7 +205,13 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans);
   .stage { aspect-ratio: 4 / 5; max-height: none }
   .opts { gap: 8px 16px }
   .seg button { padding: 4px 7px }
-  .abstract .body p { font-size: 17.5px }
+  .overview .body > p { font-size: 17.5px }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+  .stat b { font-size: 25px }
+  table.kv th[scope="row"] { width: 120px }
+  .tscroll table.res { min-width: 600px }
+  .fscroll img { width: 600px; max-width: none }
+  figure.mid .fscroll img { width: 720px }
   .tele th:nth-child(5), .tele td:nth-child(5), .tele th:nth-child(6), .tele td:nth-child(6), .tele .watch { display: none }
   .tele th, .tele td { padding-left: 7px; padding-right: 7px }
 }
@@ -203,43 +227,35 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans);
 
 <main class="page">
   <header class="titleblock">
-    <h1>Catching Super Heavy</h1>
-    <p class="subtitle">Fuel-optimal convex guidance versus a braking heuristic for tower capture</p>
-    <p class="meta">Aiden Huang &middot; Independent study &middot; Technical report, October 2026</p>
-    <nav class="tabs" aria-label="Sections">
-      <a href="#abstract">Abstract</a>
-      <a href="#fig-replay">Replay</a>
-      <a href="#sec-method">Method</a>
-      <a href="#sec-results">Results</a>
-      <a href="#sec-limits">Limitations</a>
-      <a href="#app-repro">Reproduce</a>
-    </nav>
+    <h1>Fuel-optimal convex guidance versus a braking heuristic for tower capture</h1>
+    <p class="subtitle">A simulation study of catching a Super Heavy booster with the launch tower's arms.</p>
+    <p class="meta">Aiden Huang &middot; October 2026</p>
   </header>
 
-  <section class="row abstract" id="abstract" aria-labelledby="abs-h">
-    <div class="lab"><h2 id="abs-h">Abstract</h2><span class="no">Oct 4, 2026</span></div>
+  <section class="row overview" id="overview" aria-labelledby="overview-h">
+    <div class="lab"><h2 id="overview-h">Overview</h2></div>
     <div class="body">
-      <p>We study guidance for the final 16&nbsp;s of a Super Heavy booster's return to its launch
-        tower, where the booster must reach the tower's catch arms within 1&nbsp;m while descending
-        at under 1.5&nbsp;m/s. A convex model-predictive controller (MPC), which re-solves a
-        lossless-convexified minimum-fuel problem as a second-order cone program every second, is
-        compared with an engineered braking-profile controller under identical sensing, actuation,
-        estimation, terminal-descent and abort logic. Over 300 dispersed landing burns with wind and
-        gusts, aerodynamic, thrust and mass uncertainty, navigation noise and random engine failures,
-        the MPC catches 86.3% of boosters against 73.0% (243 of 244 against 217 of 244 without an
-        engine failure), with a nine-fold smaller capture error (4&nbsp;cm against 38&nbsp;cm, median)
-        and 1.3&nbsp;t more propellant remaining. Its weakness is the mid-burn engine failure: braking
-        late leaves less room to divert, and its aborts strike the pad more often (20 against 8 of 56
-        failures); a 10&nbsp;m/s approach-speed cap reduces this to 5 at an unchanged catch rate. One
-        additional convex constraint, an engine-out braking reserve, together with 5&nbsp;t (11%) more
-        landing propellant, survives 19 of 20 engine failures under full dispersions. All vehicle
-        parameters are public estimates; the contribution is the comparison and the mechanisms it
-        exposes, not a prediction for the real vehicle.</p>
+      <p>In the last 16 seconds of a Super Heavy return, the booster has to arrive at the tower's catch arms
+        within a metre, descending at walking pace. This study compares two ways of flying that burn in
+        simulation: a convex model-predictive controller that re-solves a fuel-optimal trajectory every second,
+        and an engineered braking-profile controller. Both share the same sensors, engines, estimator, terminal
+        descent and abort logic, so only the guidance differs.</p>
+      <p>Across 300 dispersed landing burns with wind, gusts, model errors and random engine failures, the
+        convex controller catches more boosters, more precisely, with more propellant to spare. Its weak point
+        is a mid-burn engine failure, where braking late leaves less room to divert. A speed cap near the tower
+        and an engine-out braking reserve address it. Vehicle figures are public estimates, so the comparisons
+        and mechanisms are the result rather than the absolute numbers.</p>
+      <div class="stats">
+        <div class="stat"><b>86% <span>vs</span> 73%</b><p>Catch rate over 300 dispersed flights, convex MPC against the baseline</p></div>
+        <div class="stat"><b>4 <span>vs</span> 38 cm</b><p>Median distance from the catch point at capture</p></div>
+        <div class="stat"><b>5.2 <span>vs</span> 3.9 t</b><p>Median propellant left at the catch</p></div>
+        <div class="stat"><b>19 <span>of</span> 20</b><p>Engine failures survived with the engine-out reserve and 5&nbsp;t more propellant</p></div>
+      </div>
     </div>
   </section>
 
   <figure class="row replay" id="fig-replay" aria-labelledby="replay-h">
-    <div class="lab"><h2 id="replay-h">Interactive replay</h2><span class="no">Figure 1</span></div>
+    <div class="lab"><h2 id="replay-h">Interactive replay</h2><span class="no">Six scenarios</span></div>
     <div class="body">
       <div class="figtabs" role="tablist" aria-label="Scenario" id="scenarios"></div>
       <p class="scn-desc" id="story"></p>
@@ -303,7 +319,7 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans);
       </div>
       <div class="figpanels">
         <div>
-          <div class="panel-h">(b) Telemetry <span>Select a row to follow that booster</span></div>
+          <div class="panel-h">Telemetry <span>Select a row to follow that booster</span></div>
           <div class="tblwrap">
             <table class="tele" id="telemetry">
               <thead><tr><th>Controller</th><th>Phase</th><th>Altitude<small>m</small></th><th>Descent<small>m/s</small></th>
@@ -314,20 +330,18 @@ table.tele { width: 100%; border-collapse: collapse; font: 400 14px var(--sans);
           <p class="resnote" id="resnote" aria-live="polite"></p>
         </div>
         <div>
-          <div class="panel-h">(c) Descent rate against height above the catch point</div>
+          <div class="panel-h">Descent rate against height <span>Log scales</span></div>
           <canvas id="chart" aria-label="Descent rate against height, log-log"></canvas>
         </div>
       </div>
     </div>
-    <figcaption><b>Figure 1.</b> Interactive replay of six simulated landing burns. In each scenario
-      the controllers fly from the same initial state through the same disturbances. Solid lines
-      trace the centre of mass flown so far, faint dashed lines the full trajectory, and the light
-      dashed line ahead of the MPC booster its current convex plan. The followed controller is drawn
-      opaque, the others translucent. (b) Live telemetry. (c) Descent rate against height above the
-      catch point (log&ndash;log); the dashed line marks the terminal gate. Drag to rotate, right-drag or
-      use the arrow keys to pan, scroll to zoom towards the cursor and double-click to re-centre;
-      <kbd>Space</kbd> plays, <kbd>,</kbd>&thinsp;/&thinsp;<kbd>.</kbd> step one second and <kbd>R</kbd>
-      resets the view. Body attitude is a rendering approximation (&sect;7).</figcaption>
+    <figcaption>In each scenario the controllers fly from the same initial state through the same
+      disturbances. Solid lines trace the centre of mass flown so far, faint dashed lines the full trajectory,
+      and the light dashed line ahead of the MPC booster its current plan. The followed booster is drawn solid,
+      the others translucent. Drag to rotate, right-drag or use the arrow keys to pan, scroll to zoom and
+      double-click to re-centre; <kbd>Space</kbd> plays, <kbd>,</kbd>&thinsp;/&thinsp;<kbd>.</kbd> step one
+      second and <kbd>R</kbd> resets the view. The body's lean is a rendering approximation; see
+      Limitations.</figcaption>
   </figure>
 
   <!--FINDINGS-->

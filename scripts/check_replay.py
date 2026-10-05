@@ -35,7 +35,7 @@ SHOTS = [  # (scenario index, scrub 0-1000, camera / action, time of day, name)
 ]
 
 
-def pages(pg, prefix, anchors=("", "#sec-method", "#tab-mc", "#fig-basin", "#sec-refs")):
+def pages(pg, prefix, anchors=("", "#guidance", "#res-mc", "#res-eo", "#res-cost", "#lessons", "#references")):
     """Viewport screenshots of the top of the page and of a few sections (the page is too
     tall for one full-page capture)."""
     for i, a in enumerate(anchors):
