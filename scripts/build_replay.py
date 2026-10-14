@@ -31,6 +31,9 @@ findings = re.sub(r'src="img:([\w.-]+)"', inline, findings)
 page = page.replace("<!--FINDINGS-->", findings)
 doc = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
        '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
+       '<link rel="icon" href="/favicon.ico" sizes="32x32">\n'
+       '<link rel="icon" href="/favicon.svg" type="image/svg+xml">\n'
+       '<link rel="apple-touch-icon" href="/apple-touch-icon.png">\n'
        '</head>\n<body>\n' + page + '\n</body>\n</html>\n')
 (D / "index.html").write_text(doc)
 print("wrote", D / "index.html", f"{len(doc) / 1e3:.0f} kB")
